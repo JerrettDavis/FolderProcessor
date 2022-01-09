@@ -10,6 +10,11 @@
 
     <ItemGroup>
       <Folder Include="Common" />
+      <Folder Include="Processing" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MediatR" Version="10.0.0" />
     </ItemGroup>
 
 </Project>
