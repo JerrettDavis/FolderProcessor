@@ -34,9 +34,11 @@ public class PollingWatcher : IDisposable
         }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync()
     {
         _cancellationTokenSource.Cancel();
+
+        return Task.CompletedTask;
     }
 
     public void Dispose()
