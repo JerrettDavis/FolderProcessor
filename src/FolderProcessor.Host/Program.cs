@@ -1,9 +1,9 @@
 using FolderProcessor.Host;
 using FolderProcessor.Monitoring;
+using FolderProcessor.Monitoring.Streams;
 using FolderProcessor.Monitoring.Watchers;
 using FolderProcessor.Stores;
 using MediatR;
-using FileSystemWatcher = FolderProcessor.Monitoring.Watchers.FileSystemWatcher;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
@@ -12,34 +12,15 @@ var host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<ISeenFileStore, SeenFileStore>();
         services.AddSingleton<FolderWatcher>();
-        
+        services.AddSingleton<StreamedFolderWatcher>();
+
         var path = Path.Combine(Environment.CurrentDirectory, "Data");
         Directory.CreateDirectory(path);
-        services.AddSingleton<IWatcher, FileSystemWatcher>(s =>
-            new FileSystemWatcher(
-                path,
-                s.GetService<ISeenFileStore>()!,
-                s.GetService<IPublisher>()!,
-                s.GetService<ILogger<FileSystemWatcher>>()!
-                ));
-        services.AddSingleton<IWatcher, PollingWatcher>(s =>
-            new PollingWatcher(
-                path, 
-                TimeSpan.FromSeconds(30), 
-                s.GetService<ISeenFileStore>()!,
-                s.GetService<IPublisher>()!,
-                s.GetService<ILogger<PollingWatcher>>()!)
-        );
+        services.AddSingleton<IFileStream>(_ => new PolledFileStream { Folder = path, Interval = TimeSpan.FromSeconds(30)});
         var otherPath = Path.Combine(path, "Child");
         Directory.CreateDirectory(otherPath);
-        services.AddSingleton<IWatcher, PollingWatcher>(s =>
-            new PollingWatcher(
-                otherPath, 
-                TimeSpan.FromSeconds(30), 
-                s.GetService<ISeenFileStore>()!,
-                s.GetService<IPublisher>()!,
-                s.GetService<ILogger<PollingWatcher>>()!)
-        );
+        services.AddSingleton<IFileStream>(_ => new PolledFileStream { Folder = otherPath, Interval = TimeSpan.FromSeconds(30) });
+        services.AddSingleton<IFileStream>(_ => new FileSystemStream { Folder = path });
         
         services.AddHostedService<Worker>();
     })

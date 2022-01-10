@@ -1,4 +1,5 @@
 using FolderProcessor.Monitoring;
+using FolderProcessor.Monitoring.Streams;
 
 namespace FolderProcessor.Host;
 
@@ -16,7 +17,7 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await using var services = _serviceProvider.CreateAsyncScope();
-        var watcher = services.ServiceProvider.GetService<FolderWatcher>()!;
+        var watcher = services.ServiceProvider.GetService<StreamedFolderWatcher>()!;
 
         await watcher.StartAsync(stoppingToken);
         while (!stoppingToken.IsCancellationRequested)

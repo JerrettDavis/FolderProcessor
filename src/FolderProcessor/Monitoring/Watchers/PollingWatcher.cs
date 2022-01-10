@@ -11,14 +11,13 @@ public class PollingWatcher : IDisposable, IWatcher
 {
     private readonly string _folderPath;
     private readonly TimeSpan _pollInterval;
-    private readonly ISeenFileStore _seenFileStore;
-    private readonly ConcurrentQueue<FileRecord> _seenFileQueue;
     private readonly IPublisher _publisher;
 
     private const int FileWaitTimeout = 250;
     private readonly CancellationTokenSource _cancellationTokenSource;
 
     private readonly ILogger<PollingWatcher> _logger;
+    private readonly ISeenFileStore _seenFileStore;
 
     public PollingWatcher(
         string folderPath,
@@ -32,8 +31,7 @@ public class PollingWatcher : IDisposable, IWatcher
         _seenFileStore = seenFileStore;
         _publisher = publisher;
         _logger = logger;
-
-        _seenFileQueue = new ConcurrentQueue<FileRecord>();
+        
 
         _cancellationTokenSource = new CancellationTokenSource();
     }
@@ -50,7 +48,6 @@ public class PollingWatcher : IDisposable, IWatcher
                 var info = new FileRecord(f);
                 
                 _seenFileStore.Add(f);
-                _seenFileQueue.Enqueue(info);
                 await _publisher.Publish(new FileSeenNotification { FileInfo = info }, t);
 
             });
