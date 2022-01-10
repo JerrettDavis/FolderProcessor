@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using FolderProcessor.Common.Extensions;
 using FolderProcessor.Models;
 using FolderProcessor.Monitoring.Streams;
 using MediatR;
@@ -16,7 +15,7 @@ public class StreamedFolderWatcher : IDisposable
 
     public StreamedFolderWatcher(
         IMediator mediator,
-        IEnumerable<IFileStream> fileStreams, 
+        IEnumerable<IFileStream> fileStreams,
         ILogger<StreamedFolderWatcher> logger)
     {
         _mediator = mediator;
@@ -29,8 +28,8 @@ public class StreamedFolderWatcher : IDisposable
     }
 
     private void AddStream<T>(
-        T request, 
-        CancellationToken cancellationToken) 
+        T request,
+        CancellationToken cancellationToken)
         where T : IStreamRequest<FileRecord>
     {
         _streams.Add(() => _mediator.CreateStream(request, cancellationToken));
@@ -41,12 +40,11 @@ public class StreamedFolderWatcher : IDisposable
         _cancellationTokenSource = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken);
 
-        var streams = _streams.Select(s => Task.Run(s, _cancellationTokenSource.Token)).ToList();
+        var streams = _streams.Select(s => Task.Run(s, _cancellationTokenSource.Token))
+            .ToArray();
         var deferredStreams = await Task.WhenAll(streams);
-        var merged = deferredStreams.MergeAsyncEnumerable(
-            TimeSpan.FromMilliseconds(100), 
-            _cancellationTokenSource.Token);
-        
+        var merged = AsyncEnumerableEx.Merge(deferredStreams);
+
         await foreach (var file in merged.WithCancellation(_cancellationTokenSource.Token))
         {
             _logger.LogInformation("Incoming file {File}", file);
