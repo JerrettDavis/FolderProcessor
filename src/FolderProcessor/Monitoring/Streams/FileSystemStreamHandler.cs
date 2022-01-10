@@ -47,7 +47,9 @@ public class FileSystemStreamHandler :
         TearDownWatcher(watcher);
     }
     
-    private FileSystemWatcher SetupWatcher(string folder, CancellationToken cancellation)
+    private FileSystemWatcher SetupWatcher(
+        string folder, 
+        CancellationToken cancellation)
     {
         var watcher = new FileSystemWatcher(folder);
         watcher.NotifyFilter = NotifyFilters.Attributes
@@ -65,7 +67,9 @@ public class FileSystemStreamHandler :
         return watcher;
     }
     
-    private async void OnWatcherOnChanged(FileSystemEventArgs args, CancellationToken cancellationToken)
+    private async void OnWatcherOnChanged(
+        FileSystemEventArgs args, 
+        CancellationToken cancellationToken)
     {
         var path = args.FullPath;
 

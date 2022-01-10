@@ -43,7 +43,9 @@ public class StreamedFolderWatcher : IDisposable
 
         var streams = _streams.Select(s => Task.Run(s, _cancellationTokenSource.Token)).ToList();
         var deferredStreams = await Task.WhenAll(streams);
-        var merged = deferredStreams.MergeAsyncEnumerable(cancellationToken: _cancellationTokenSource.Token);
+        var merged = deferredStreams.MergeAsyncEnumerable(
+            TimeSpan.FromMilliseconds(100), 
+            _cancellationTokenSource.Token);
         
         await foreach (var file in merged.WithCancellation(_cancellationTokenSource.Token))
         {

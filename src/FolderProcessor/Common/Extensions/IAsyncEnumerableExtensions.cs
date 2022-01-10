@@ -7,33 +7,47 @@ namespace FolderProcessor.Common.Extensions;
 public static class IAsyncEnumerableExtensions
 {
     public static async IAsyncEnumerable<TSource> MergeAsyncEnumerable<TSource>(
-        this IList<IAsyncEnumerable<TSource>> sources,
-        int debounceTime = 100,
+        this IEnumerable<IAsyncEnumerable<TSource>> sources,
+        TimeSpan? debounceTime = default,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queue = new ConcurrentQueue<TSource>();
-        while (!cancellationToken.IsCancellationRequested)
+        var tasks = SetupCollections(sources, queue, cancellationToken);
+        
+        while (!Task.WhenAll(tasks).IsCompleted)
         {
-            var collections = sources
-                .Select(s => Task.Run(async () =>
-                {
-                    await foreach (var file in s.WithCancellation(cancellationToken)) 
-                        queue.Enqueue(file);
-                }, cancellationToken))
-                .ToList();
-
-            while (!Task.WhenAll(collections).IsCompleted)
-            {
-                while (!queue.IsEmpty)
-                    if (queue.TryDequeue(out var record))
-                        yield return record;
+            while (!queue.IsEmpty)
+                if (queue.TryDequeue(out var record))
+                    yield return record;
                 
-                // Small debounce to prevent an infinite loop from just spinning. 
-                await Task.Delay(debounceTime, cancellationToken)
-                    .ContinueWith(_ => {}, CancellationToken.None);
-            }
+            // Small debounce to prevent an infinite loop from just spinning. 
+            await WaitIfDebounce(debounceTime, cancellationToken);
         }
 
         await Task.CompletedTask;
+    }
+
+    private static Task WaitIfDebounce(
+        TimeSpan? debounceTime,
+        CancellationToken cancellationToken)
+    {
+        return debounceTime.HasValue
+            ? Task.Delay(debounceTime.Value, cancellationToken)
+                .ContinueWith(_ => { }, CancellationToken.None)
+            : Task.CompletedTask;
+    }
+
+    private static IList<Task> SetupCollections<TSource>(
+        IEnumerable<IAsyncEnumerable<TSource>> sources,
+        ConcurrentQueue<TSource> queue,
+        CancellationToken cancellationToken)
+    {
+        return sources
+            .Select(s => Task.Run(async () =>
+            {
+                await foreach (var file in s.WithCancellation(cancellationToken)) 
+                    queue.Enqueue(file);
+            }, cancellationToken))
+            .ToList();
     }
 }
