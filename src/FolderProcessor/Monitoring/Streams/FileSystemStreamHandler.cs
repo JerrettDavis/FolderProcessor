@@ -60,7 +60,7 @@ public class FileSystemStreamHandler :
                                | NotifyFilters.Size;
         watcher.EnableRaisingEvents = true;
         _tearDown = (_, args) => OnWatcherOnChanged(args, cancellation);
-        watcher.Changed += _tearDown.Invoke;
+        watcher.Created += _tearDown.Invoke;
 
         return watcher;
     }
@@ -91,6 +91,6 @@ public class FileSystemStreamHandler :
     private void TearDownWatcher(FileSystemWatcher watcher)
     {
         if (_tearDown != null)
-            watcher.Changed -= _tearDown.Invoke;
+            watcher.Created -= _tearDown.Invoke;
     }
 }

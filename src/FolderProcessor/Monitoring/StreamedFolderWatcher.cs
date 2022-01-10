@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using FolderProcessor.Common.Extensions;
 using FolderProcessor.Models;
 using FolderProcessor.Monitoring.Streams;
 using MediatR;
@@ -40,16 +41,13 @@ public class StreamedFolderWatcher : IDisposable
         _cancellationTokenSource = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken);
 
-        var streams = _streams.Select(s => s()).ToList();
-        while (!cancellationToken.IsCancellationRequested)
+        var streams = _streams.Select(s => Task.Run(s, _cancellationTokenSource.Token)).ToList();
+        var deferredStreams = await Task.WhenAll(streams);
+        var merged = deferredStreams.MergeAsyncEnumerable(cancellationToken: _cancellationTokenSource.Token);
+        
+        await foreach (var file in merged.WithCancellation(_cancellationTokenSource.Token))
         {
-            await foreach (var file in streams.Merge().WithCancellation(cancellationToken))
-            {
-                _logger.LogInformation("Incoming file {File}", file);
-            }
-            
-            await Task.Delay(1000, cancellationToken)
-                .ContinueWith(_ => {}, CancellationToken.None);
+            _logger.LogInformation("Incoming file {File}", file);
         }
     }
 

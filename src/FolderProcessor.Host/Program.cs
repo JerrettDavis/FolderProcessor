@@ -20,7 +20,7 @@ var host = Host.CreateDefaultBuilder(args)
         
         services.AddSingleton<IFileStream>(_ => new PolledFileStream { Folder = path, Interval = TimeSpan.FromSeconds(30)});
         services.AddSingleton<IFileStream>(_ => new PolledFileStream { Folder = otherPath, Interval = TimeSpan.FromSeconds(30) });
-        // services.AddSingleton<IFileStream>(_ => new FileSystemStream { Folder = path });
+        services.AddSingleton<IFileStream>(_ => new FileSystemStream { Folder = path });
         
         services.AddHostedService<Worker>();
     })

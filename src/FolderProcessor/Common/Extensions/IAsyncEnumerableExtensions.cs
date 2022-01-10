@@ -5,33 +5,35 @@ namespace FolderProcessor.Common.Extensions;
 
 // ReSharper disable once InconsistentNaming
 public static class IAsyncEnumerableExtensions
-{ 
-    public static async IAsyncEnumerable<TSource[]> Zip<TSource>(
-        this IEnumerable<IAsyncEnumerable<TSource>> sources,
-        [EnumeratorCancellation]CancellationToken cancellationToken = default)
+{
+    public static async IAsyncEnumerable<TSource> MergeAsyncEnumerable<TSource>(
+        this IList<IAsyncEnumerable<TSource>> sources,
+        int debounceTime = 100,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var enumerators = sources
-            .Select(x => x.GetAsyncEnumerator(cancellationToken))
-            .ToArray();
-        try
+        var queue = new ConcurrentQueue<TSource>();
+        while (!cancellationToken.IsCancellationRequested)
         {
-            while (true)
-            {
-                var array = new TSource[enumerators.Length];
-                for (var i = 0; i < enumerators.Length; i++)
+            var collections = sources
+                .Select(s => Task.Run(async () =>
                 {
-                    if (!await enumerators[i].MoveNextAsync()) yield break;
-                    array[i] = enumerators[i].Current;
-                }
-                yield return array;
-            }
-        }
-        finally
-        {
-            foreach (var enumerator in enumerators)
+                    await foreach (var file in s.WithCancellation(cancellationToken)) 
+                        queue.Enqueue(file);
+                }, cancellationToken))
+                .ToList();
+
+            while (!Task.WhenAll(collections).IsCompleted)
             {
-                await enumerator.DisposeAsync();
+                while (!queue.IsEmpty)
+                    if (queue.TryDequeue(out var record))
+                        yield return record;
+                
+                // Small debounce to prevent an infinite loop from just spinning. 
+                await Task.Delay(debounceTime, cancellationToken)
+                    .ContinueWith(_ => {}, CancellationToken.None);
             }
         }
+
+        await Task.CompletedTask;
     }
 }
