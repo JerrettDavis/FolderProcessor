@@ -9,7 +9,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Common" />
       <Folder Include="Processing\Requests" />
     </ItemGroup>
 
@@ -17,6 +16,7 @@
       <PackageReference Include="MediatR" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
       <PackageReference Include="System.Interactive.Async" Version="5.1.0" />
+      <PackageReference Include="System.Linq.Async" Version="5.1.0" />
     </ItemGroup>
 
 </Project>

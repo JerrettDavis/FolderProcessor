@@ -27,10 +27,10 @@ public class PolledFileStreamHandler :
 
     public async IAsyncEnumerable<FileRecord> Handle(
         PolledFileStream request, 
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var queue = new ConcurrentQueue<FileRecord>();
-        while (true)  //something weird is going on here... // (!cancellationToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             var files = Directory.EnumerateFiles(request.Folder)
                 .Where(f => !_seenFileStore.Contains(f));
@@ -52,10 +52,10 @@ public class PolledFileStreamHandler :
                     yield return result;
             }
 
-            _logger.LogInformation("PollingWatcher watching {Directory} at: {Time}", request.Folder, DateTimeOffset.Now);
+            _logger.LogInformation("PolledFileStreamHandler watching {Directory} at: {Time}", request.Folder, DateTimeOffset.Now);
+            
             await Task.Delay(request.Interval, cancellationToken)
                 .ContinueWith(_ => {}, CancellationToken.None);
         }
-        
     }
 }

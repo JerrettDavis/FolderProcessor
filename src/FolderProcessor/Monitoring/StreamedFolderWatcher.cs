@@ -23,19 +23,16 @@ public class StreamedFolderWatcher : IDisposable
         _streams = new ConcurrentBag<Func<IAsyncEnumerable<FileRecord>>>();
         _cancellationTokenSource = new CancellationTokenSource();
 
-        foreach (var item in fileStreams)
-        {
-            AddStream(item, _cancellationTokenSource.Token);
-        }
+        fileStreams.ToList()
+            .ForEach(f => AddStream(f, _cancellationTokenSource.Token));
     }
 
-    public void AddStream<T>(
+    private void AddStream<T>(
         T request, 
         CancellationToken cancellationToken) 
         where T : IStreamRequest<FileRecord>
     {
         _streams.Add(() => _mediator.CreateStream(request, cancellationToken));
-        _cancellationTokenSource?.Cancel();
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -46,30 +43,26 @@ public class StreamedFolderWatcher : IDisposable
         var streams = _streams.Select(s => s()).ToList();
         while (!cancellationToken.IsCancellationRequested)
         {
-            foreach (var stream in _streams.Select(s => s()))
+            await foreach (var file in streams.Merge().WithCancellation(cancellationToken))
             {
-                await foreach (var f in stream.WithCancellation(cancellationToken))
-                {
-                    _logger.LogInformation("Incoming file {File}", f);
-                }
+                _logger.LogInformation("Incoming file {File}", file);
             }
-            // await foreach (var file in streams.Merge().WithCancellation(cancellationToken))
-            // {
-            //     _logger.LogInformation("Incoming file {File}", file);
-            // }
             
             await Task.Delay(1000, cancellationToken)
                 .ContinueWith(_ => {}, CancellationToken.None);
         }
     }
 
-    public async Task StopAsync()
+    public Task StopAsync()
     {
         _cancellationTokenSource?.Cancel();
+
+        return Task.CompletedTask;
     }
 
     public void Dispose()
     {
         _cancellationTokenSource?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
