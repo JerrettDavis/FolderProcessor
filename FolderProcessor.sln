@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{D1457DD6-C
 		Docs\Overview.md = Docs\Overview.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolderProcessor.Host", "src\FolderProcessor.Host\FolderProcessor.Host.csproj", "{61C4D197-BED1-4561-A674-AE06E6C182EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,5 +19,9 @@ Global
 		{7B959D8B-8867-4F7A-A925-3E5797AC244A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B959D8B-8867-4F7A-A925-3E5797AC244A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B959D8B-8867-4F7A-A925-3E5797AC244A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61C4D197-BED1-4561-A674-AE06E6C182EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61C4D197-BED1-4561-A674-AE06E6C182EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61C4D197-BED1-4561-A674-AE06E6C182EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61C4D197-BED1-4561-A674-AE06E6C182EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

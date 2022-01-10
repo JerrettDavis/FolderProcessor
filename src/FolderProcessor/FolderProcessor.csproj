@@ -10,11 +10,12 @@
 
     <ItemGroup>
       <Folder Include="Common" />
-      <Folder Include="Processing" />
+      <Folder Include="Processing\Requests" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="MediatR" Version="10.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     </ItemGroup>
 
 </Project>
