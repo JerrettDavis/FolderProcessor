@@ -1,5 +1,4 @@
-using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using FolderProcessor.Models;
 using FolderProcessor.Monitoring.Notifications;
 using FolderProcessor.Stores;
@@ -25,37 +24,62 @@ public class PolledFileStreamHandler :
         _logger = logger;
     }
 
-    public async IAsyncEnumerable<FileRecord> Handle(
+    public IAsyncEnumerable<FileRecord> Handle(
         PolledFileStream request, 
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
-        var queue = new ConcurrentQueue<FileRecord>();
+        var channel = Channel.CreateUnbounded<FileRecord>();
+        
+        // Defer the poll to a background worker so our channel can return.
+        Task.Run(async () => 
+            await FolderPoller(
+                request.Folder, 
+                request.Interval, 
+                channel, 
+                cancellationToken), 
+            cancellationToken);
+        
+        return channel.Reader.ReadAllAsync(cancellationToken);
+    }
+
+    private async Task FolderPoller(
+        string folder,
+        TimeSpan interval,
+        Channel<FileRecord, FileRecord> channel,
+        CancellationToken cancellationToken)
+    {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var files = Directory.EnumerateFiles(request.Folder)
-                .Where(f => !_seenFileStore.Contains(f));
-
-            await Parallel.ForEachAsync(files, CancellationToken.None, async (f,t) =>
+            try
             {
-                var info = new FileRecord(f);
-                
-                _seenFileStore.Add(f);
-                await _publisher.Publish(new FileSeenNotification { FileInfo = info }, t);
-                queue.Enqueue(info);
-            });
-            
-            // TODO: Try mixing the above parallel task with the serving task... Might be chaos...
+                var files = Directory.EnumerateFiles(folder)
+                    .Where(f => !_seenFileStore.Contains(f));
 
-            while (!queue.IsEmpty)
-            {
-                if (queue.TryDequeue(out var result))
-                    yield return result;
+                /* We want to eagerly grab and broadcast the presence of all the files
+                 * we find. But since we're operating as a stream, we can't immediately 
+                 * return them to the caller. To remedy this, we put all the files we
+                 * find in a Channel that emits items to the caller as they're request. */
+                await Parallel.ForEachAsync(files, CancellationToken.None, async (f, t) =>
+                {
+                    var info = new FileRecord(f);
+
+                    _seenFileStore.Add(f);
+                    await _publisher.Publish(new FileSeenNotification {FileInfo = info}, t);
+                    if (!channel.Writer.TryWrite(info))
+                        _logger.LogError("Unable to add {File} to Channel!", info);
+
+                });
+
+                _logger.LogInformation("PolledFileStreamHandler watching {Directory} at: {Time}", folder,
+                    DateTimeOffset.Now);
+
+                await Task.Delay(interval, cancellationToken)
+                    .ContinueWith(_ => { }, CancellationToken.None);
             }
-
-            _logger.LogInformation("PolledFileStreamHandler watching {Directory} at: {Time}", request.Folder, DateTimeOffset.Now);
-            
-            await Task.Delay(request.Interval, cancellationToken)
-                .ContinueWith(_ => {}, CancellationToken.None);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while running file watcher poll.");
+            }
         }
     }
 }

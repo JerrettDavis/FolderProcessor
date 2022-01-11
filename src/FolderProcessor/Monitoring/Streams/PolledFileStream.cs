@@ -1,10 +1,7 @@
-using FolderProcessor.Models;
-using MediatR;
-
 namespace FolderProcessor.Monitoring.Streams;
 
-public class PolledFileStream : IStreamRequest<FileRecord>, IFileStream
+public class PolledFileStream : IFileStream
 {
-    public string Folder { get; set; }
-    public TimeSpan Interval { get; set; } 
+    public string Folder { get; set; } = null!;
+    public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(30);
 }

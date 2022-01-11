@@ -1,5 +1,4 @@
-using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using FolderProcessor.Models;
 using FolderProcessor.Monitoring.Notifications;
 using FolderProcessor.Stores;
@@ -14,9 +13,6 @@ public class FileSystemStreamHandler :
     private readonly ISeenFileStore _seenFileStore;
     private readonly ILogger<FileSystemStreamHandler> _logger;
     private readonly IPublisher _publisher;
-    private readonly ConcurrentQueue<FileRecord> _queue;
-
-    private Action<object, FileSystemEventArgs>? _tearDown;
 
     public FileSystemStreamHandler(
         ISeenFileStore seenFileStore, 
@@ -26,32 +22,13 @@ public class FileSystemStreamHandler :
         _seenFileStore = seenFileStore;
         _logger = logger;
         _publisher = publisher;
-        _queue = new ConcurrentQueue<FileRecord>();
     }
 
-    public async IAsyncEnumerable<FileRecord> Handle(
+    public IAsyncEnumerable<FileRecord> Handle(
         FileSystemStream request, 
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
-        var watcher = SetupWatcher(request.Folder, cancellationToken);
-        
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            if (_queue.TryDequeue(out var record))
-                yield return record;
-
-            await Task.Delay(100, cancellationToken)
-                .ContinueWith(_ => {}, CancellationToken.None);
-        }
-        
-        TearDownWatcher(watcher);
-    }
-    
-    private FileSystemWatcher SetupWatcher(
-        string folder, 
-        CancellationToken cancellation)
-    {
-        var watcher = new FileSystemWatcher(folder);
+        var watcher = new FileSystemWatcher(request.Folder);
         watcher.NotifyFilter = NotifyFilters.Attributes
                                | NotifyFilters.CreationTime
                                | NotifyFilters.DirectoryName
@@ -61,14 +38,17 @@ public class FileSystemStreamHandler :
                                | NotifyFilters.Security
                                | NotifyFilters.Size;
         watcher.EnableRaisingEvents = true;
-        _tearDown = (_, args) => OnWatcherOnChanged(args, cancellation);
-        watcher.Created += _tearDown.Invoke;
 
-        return watcher;
+        var buffer = Channel.CreateUnbounded<FileRecord>();
+        watcher.Created += (_, args) => OnWatcherOnChanged(args, buffer, cancellationToken);
+
+        return buffer.Reader.ReadAllAsync(cancellationToken);
     }
-    
+
+
     private async void OnWatcherOnChanged(
         FileSystemEventArgs args, 
+        Channel<FileRecord, FileRecord> channel,
         CancellationToken cancellationToken)
     {
         var path = args.FullPath;
@@ -83,18 +63,14 @@ public class FileSystemStreamHandler :
         }
         catch (FileNotFoundException)
         {
-            _logger.LogWarning("File {File} was not found. During a routine check. Will not be broadcast", path);
+            _logger.LogWarning("File {File} was not found. During a routine pre-check. Will not be broadcast", path);
             return;
         }
             
         var record = new FileRecord(path);
-        _queue.Enqueue(record);
+        var written = channel.Writer.TryWrite(record);
+        if (!written)
+            _logger.LogError("File {file} was not written to channel!", record);
         await _publisher.Publish(new FileSeenNotification { FileInfo = record }, cancellationToken);
-    }
-
-    private void TearDownWatcher(FileSystemWatcher watcher)
-    {
-        if (_tearDown != null)
-            watcher.Created -= _tearDown.Invoke;
     }
 }
