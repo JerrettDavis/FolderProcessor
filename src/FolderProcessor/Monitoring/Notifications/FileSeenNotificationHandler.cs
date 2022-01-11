@@ -18,7 +18,7 @@ public class FileSeenNotificationHandler :
         FileSeenNotification notification, 
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("File seen at {Path}", notification.FileInfo);
+        _logger.LogInformation("Saw new {Path}", notification.FileInfo);
         return Task.CompletedTask;
     }
 }

@@ -65,6 +65,7 @@ public class PolledFileStreamHandler :
 
                     _seenFileStore.Add(f);
                     await _publisher.Publish(new FileSeenNotification {FileInfo = info}, t);
+                    
                     if (!channel.Writer.TryWrite(info))
                         _logger.LogError("Unable to add {File} to Channel!", info);
 
