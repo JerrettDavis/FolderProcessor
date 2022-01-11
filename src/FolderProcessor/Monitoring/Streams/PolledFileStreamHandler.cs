@@ -71,7 +71,9 @@ public class PolledFileStreamHandler :
 
                 });
 
-                _logger.LogInformation("PolledFileStreamHandler watching {Directory} at: {Time}", folder,
+                _logger.LogInformation(
+                    "PolledFileStreamHandler watching {Directory} at: {Time}", 
+                    folder,
                     DateTimeOffset.Now);
 
                 await Task.Delay(interval, cancellationToken)
@@ -79,7 +81,7 @@ public class PolledFileStreamHandler :
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while running file watcher poll.");
+                _logger.LogError(ex, "An error occurred while running file watcher poll");
             }
         }
     }

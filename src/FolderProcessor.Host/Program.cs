@@ -1,28 +1,21 @@
 using FolderProcessor.Host;
+using FolderProcessor.Host.Extensions;
+using FolderProcessor.Host.Models;
 using FolderProcessor.Monitoring;
-using FolderProcessor.Monitoring.Streams;
 using FolderProcessor.Stores;
 using MediatR;
 
 var host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
+    .ConfigureServices((host, services) =>
     {
-        services.AddMediatR(typeof(Program), typeof(StreamedFolderWatcher));
-
-        services.AddSingleton<ISeenFileStore, SeenFileStore>();
-        services.AddSingleton<StreamedFolderWatcher>();
-
-        var path = Path.Combine(Environment.CurrentDirectory, "Data");
-        var otherPath = Path.Combine(path, "Child");
+        var settings = new FolderProcessorSettings();
+        host.Configuration.GetSection("FolderProcessor").Bind(settings);
         
-        Directory.CreateDirectory(path);
-        Directory.CreateDirectory(otherPath);
-        
-        services.AddSingleton<IFileStream>(_ => new PolledFileStream { Folder = path, Interval = TimeSpan.FromSeconds(30)});
-        services.AddSingleton<IFileStream>(_ => new PolledFileStream { Folder = otherPath, Interval = TimeSpan.FromSeconds(30) });
-        services.AddSingleton<IFileStream>(_ => new FileSystemStream { Folder = path });
-        
-        services.AddHostedService<Worker>();
+        services.AddMediatR(typeof(Program), typeof(StreamedFolderWatcher))
+            .AddSingleton<ISeenFileStore, SeenFileStore>()
+            .AddSingleton<StreamedFolderWatcher>()
+            .AddFolderWatchers(settings.Watchers)
+            .AddHostedService<Worker>();
     })
     .Build();
 
