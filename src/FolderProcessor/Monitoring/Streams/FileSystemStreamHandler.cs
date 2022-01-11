@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using System.Threading.Channels;
 using FolderProcessor.Models;
 using FolderProcessor.Monitoring.Notifications;
@@ -12,15 +13,18 @@ public class FileSystemStreamHandler :
 {
     private readonly ISeenFileStore _seenFileStore;
     private readonly ILogger<FileSystemStreamHandler> _logger;
+    private readonly IFileSystem _fileSystem;
     private readonly IPublisher _publisher;
 
     public FileSystemStreamHandler(
         ISeenFileStore seenFileStore, 
         ILogger<FileSystemStreamHandler> logger, 
+        IFileSystem fileSystem,
         IPublisher publisher)
     {
         _seenFileStore = seenFileStore;
         _logger = logger;
+        _fileSystem = fileSystem;
         _publisher = publisher;
     }
 
@@ -28,7 +32,7 @@ public class FileSystemStreamHandler :
         FileSystemStream request, 
         CancellationToken cancellationToken)
     {
-        var watcher = new FileSystemWatcher(request.Folder);
+        var watcher = _fileSystem.FileSystemWatcher.CreateNew(request.Folder);
         watcher.NotifyFilter = NotifyFilters.Attributes
                                | NotifyFilters.CreationTime
                                | NotifyFilters.DirectoryName
@@ -59,7 +63,7 @@ public class FileSystemStreamHandler :
 
         try
         {
-            if ((File.GetAttributes(path) & FileAttributes.Directory) != 0) return;
+            if ((_fileSystem.File.GetAttributes(path) & FileAttributes.Directory) != 0) return;
         }
         catch (FileNotFoundException)
         {

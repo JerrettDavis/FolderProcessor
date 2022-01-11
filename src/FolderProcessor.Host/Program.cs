@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using FolderProcessor.Host;
 using FolderProcessor.Monitoring;
 using FolderProcessor.Monitoring.Streams;
@@ -7,6 +8,7 @@ using MediatR;
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
+        services.AddSingleton<IFileSystem, FileSystem>();
         services.AddMediatR(typeof(Program), typeof(StreamedFolderWatcher));
 
         services.AddSingleton<ISeenFileStore, SeenFileStore>();

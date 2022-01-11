@@ -16,6 +16,7 @@
       <PackageReference Include="MediatR" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
       <PackageReference Include="System.Interactive.Async" Version="5.1.0" />
+      <PackageReference Include="System.IO.Abstractions" Version="16.0.8" />
       <PackageReference Include="System.Linq.Async" Version="5.1.0" />
     </ItemGroup>
 
