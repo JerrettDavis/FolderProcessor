@@ -70,6 +70,7 @@ public class StreamedFolderWatcher : IDisposable
 
     public void Dispose()
     {
+        StopAsync().RunSynchronously();
         _cancellationTokenSource?.Dispose();
         GC.SuppressFinalize(this);
     }

@@ -74,7 +74,7 @@ public class FileSystemStreamHandler :
         var record = new FileRecord(path);
         var written = channel.Writer.TryWrite(record);
         if (!written)
-            _logger.LogError("File {file} was not written to channel!", record);
+            _logger.LogError("File {File} was not written to channel!", record);
         await _publisher.Publish(new FileSeenNotification { FileInfo = record }, cancellationToken);
     }
 }
