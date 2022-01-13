@@ -1,21 +1,24 @@
 using System.IO.Abstractions;
+using FolderProcessor.Abstractions.Monitoring.Filters;
+using FolderProcessor.Extensions.Microsoft.DependencyInjection;
 using FolderProcessor.Host;
-using FolderProcessor.Host.Extensions;
 using FolderProcessor.Host.Models;
 using FolderProcessor.Monitoring;
-using FolderProcessor.Stores;
+using FolderProcessor.Monitoring.Filters;
 using MediatR;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((host, services) =>
     {
-        var settings = new FolderProcessorSettings();
-        host.Configuration.GetSection("FolderProcessor").Bind(settings);
-        
         services.AddMediatR(typeof(Program), typeof(StreamedFolderWatcher))
-            .AddSingleton<ISeenFileStore, SeenFileStore>()
-            .AddSingleton<StreamedFolderWatcher>()
-            .AddFolderWatchers(settings.Watchers)
+            .AddFolderProcessor(host.Configuration)
+            .AddFolderWatcher(() => new PollingWatcherSettings
+            {
+                Folder = "Data/Child",
+                Interval = TimeSpan.FromSeconds(30)
+            })
+            .AddFolderWatcher(() => new WatcherSettings("Data/Child"))
+            .AddSingleton<IFileFilter>(s => new FileTypeFileFilter(s.GetService<IFileSystem>()!, new []{ ".txt" }))
             .AddHostedService<Worker>();
     })
     .Build();

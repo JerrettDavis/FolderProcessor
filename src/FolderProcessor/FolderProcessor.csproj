@@ -1,10 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <TargetFramework>net6.0</TargetFramework>
+        <PackageVersion>0.0.1</PackageVersion>
+        <Title>FolderProcessor</Title>
+        <Authors>Jerrett Davis</Authors>
+        <Description>Monitors folders for files to process, enqueues them for processing using user-defined processors.</Description>
+        <Copyright>Copyright (c) Jerrett Davis 2022</Copyright>
+        <PackageProjectUrl>https://github.com/JerrettDavis/FolderProcessor</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/JerrettDavis/FolderProcessor</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,7 +24,11 @@
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
       <PackageReference Include="System.Interactive.Async" Version="5.1.0" />
       <PackageReference Include="System.IO.Abstractions" Version="16.0.8" />
-      <PackageReference Include="System.Linq.Async" Version="5.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\FolderProcessor.Abstractions\FolderProcessor.Abstractions.csproj" />
+      <ProjectReference Include="..\FolderProcessor.Models\FolderProcessor.Models.csproj" />
     </ItemGroup>
 
 </Project>

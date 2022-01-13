@@ -1,9 +1,9 @@
-using FolderProcessor.Models;
+using FolderProcessor.Abstractions.Files;
 using MediatR;
 
 namespace FolderProcessor.Processing.Notifications;
 
 public class FileNeedsProcessingNotification : INotification
 {
-    public FileRecord File { get; set; } = null!;
+    public IFileRecord File { get; set; } = null!;
 }

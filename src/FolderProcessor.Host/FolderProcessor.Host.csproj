@@ -6,6 +6,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>dotnet-FolderProcessor.Host-E07729CC-A639-4D92-A2AD-65ABDE678309</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <PackageVersion>0.0.1</PackageVersion>
+        <Title>FolderProcessor.Host</Title>
+        <Authors>Jerrett Davis</Authors>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,10 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Processors" />
-    </ItemGroup>
-
-    <ItemGroup>
+      <ProjectReference Include="..\FolderProcessor.Extensions.Microsoft.DependencyInjection\FolderProcessor.Extensions.Microsoft.DependencyInjection.csproj" />
       <ProjectReference Include="..\FolderProcessor\FolderProcessor.csproj" />
     </ItemGroup>
 </Project>
