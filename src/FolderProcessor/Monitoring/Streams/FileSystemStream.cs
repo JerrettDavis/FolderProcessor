@@ -1,3 +1,5 @@
+using FolderProcessor.Abstractions.Monitoring.Streams;
+
 namespace FolderProcessor.Monitoring.Streams;
 
 public class FileSystemStream : IFileStream

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Title>FolderProcessor.Abstractions</Title>
+        <Authors>Jerrett Davis</Authors>
+        <Description>Contains all the interfaces that power FolderProcessor.Abstractions.</Description>
+        <PackageProjectUrl>https://github.com/JerrettDavis/FolderProcessor</PackageProjectUrl>
+        <PackageLicenseUrl></PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/JerrettDavis/FolderProcessor</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageVersion>0.0.1</PackageVersion>
+        <Copyright>Copyright (c) Jerrett Davis 2022</Copyright>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="Monitoring\Notifications" />
+      <Folder Include="Processing\Notifications" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MediatR.Contracts" Version="1.0.0" />
+    </ItemGroup>
+
+</Project>

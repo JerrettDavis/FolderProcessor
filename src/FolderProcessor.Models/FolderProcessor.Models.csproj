@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Title>FolderProcessor.Models</Title>
+        <Description>Contains all the public models used by FolderProcessor.Models</Description>
+        <PackageProjectUrl>https://github.com/JerrettDavis/FolderProcessor</PackageProjectUrl>
+        <PackageLicenseUrl></PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/JerrettDavis/FolderProcessor</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageVersion>0.0.1</PackageVersion>
+        <Authors>Jerrett Davis</Authors>
+        <Copyright>Copyright (c) Jerrett Davis 2022</Copyright>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MediatR.Contracts" Version="1.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\FolderProcessor.Abstractions\FolderProcessor.Abstractions.csproj" />
+    </ItemGroup>
+
+</Project>

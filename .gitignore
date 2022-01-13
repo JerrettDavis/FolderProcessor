@@ -4,3 +4,8 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .idea/
+*.user
+
+TestResults/
+
+src/FolderProcessor.Host/Data/

@@ -1,8 +1,7 @@
-using FolderProcessor.Models;
-using FolderProcessor.Monitoring.Streams;
+using FolderProcessor.Models.Files;
 using MediatR;
 
-namespace FolderProcessor.Monitoring.Notifications;
+namespace FolderProcessor.Models.Monitoring.Notifications;
 
 /// <summary>
 /// This notification is thrown by a <see cref="IFileStream"/> when it sees a
