@@ -1,7 +1,6 @@
 using JetBrains.Annotations;
 
-// ReSharper disable once CheckNamespace
-namespace FolderProcessor.Host.Models;
+namespace FolderProcessor.Models.Configuration;
 
 [PublicAPI]
 public enum WatcherType

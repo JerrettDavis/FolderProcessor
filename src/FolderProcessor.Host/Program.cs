@@ -2,7 +2,7 @@ using System.IO.Abstractions;
 using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection;
 using FolderProcessor.Host;
-using FolderProcessor.Host.Models;
+using FolderProcessor.Models.Configuration;
 using FolderProcessor.Monitoring;
 using FolderProcessor.Monitoring.Filters;
 using MediatR;

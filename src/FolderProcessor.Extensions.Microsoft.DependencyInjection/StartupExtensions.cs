@@ -1,6 +1,6 @@
 ﻿using System.IO.Abstractions;
 using FolderProcessor.Abstractions.Monitoring.Streams;
-using FolderProcessor.Host.Models;
+using FolderProcessor.Models.Configuration;
 using FolderProcessor.Monitoring;
 using FolderProcessor.Monitoring.Streams;
 using FolderProcessor.Stores;
