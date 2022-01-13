@@ -4,6 +4,7 @@ using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Monitoring.Notifications;
 using FolderProcessor.Stores;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -13,6 +14,7 @@ namespace FolderProcessor.Monitoring.Streams;
 /// Uses the <see cref="FileSystemWatcher"/> to continuously monitor a folder
 /// for new files.
 /// </summary>
+[UsedImplicitly]
 public class FileSystemStreamHandler : 
     IStreamRequestHandler<FileSystemStream, IFileRecord>
 {

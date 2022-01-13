@@ -4,11 +4,13 @@ using FolderProcessor.Host.Models;
 using FolderProcessor.Monitoring;
 using FolderProcessor.Monitoring.Streams;
 using FolderProcessor.Stores;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FolderProcessor.Extensions.Microsoft.DependencyInjection;
 
+[PublicAPI]
 public static class StartupExtensions
 {
     private const string SettingsString = "FolderProcessor";
@@ -19,16 +21,12 @@ public static class StartupExtensions
     
     public static IServiceCollection AddFolderProcessor(
         this IServiceCollection services,
-        IConfiguration configuration)
-    {
+        IConfiguration configuration) =>
         services
             .AddSingleton<IFileSystem, FileSystem>()
             .AddSingleton<ISeenFileStore, SeenFileStore>()
             .AddSingleton<StreamedFolderWatcher>()
             .AddFolderWatchers(configuration);
-
-        return services;
-    }
 
     private static IServiceCollection AddFolderWatchers(
         this IServiceCollection services,
@@ -61,7 +59,7 @@ public static class StartupExtensions
         {
             WatcherType.Polling => AddPollingWatcher(services, _ => (PollingWatcherSettings) settings),
             WatcherType.FileSystemWatcher => AddFileSystemWatcher(services, _ => settings),
-            _ => throw new ArgumentOutOfRangeException(nameof(settings), settings.Type, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(options), settings.Type, null)
         };
     }
 

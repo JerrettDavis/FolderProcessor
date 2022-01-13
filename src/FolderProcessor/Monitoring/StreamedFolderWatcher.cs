@@ -91,13 +91,6 @@ public class StreamedFolderWatcher : IDisposable
         }
     }
 
-    public Task StopAsync()
-    {
-        _cancellationTokenSource?.Cancel();
-
-        return Task.CompletedTask;
-    }
-
     public void Dispose()
     {
         _cancellationTokenSource?.Dispose();

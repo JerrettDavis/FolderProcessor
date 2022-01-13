@@ -5,5 +5,5 @@ namespace FolderProcessor.Models.Processing.Notifications;
 
 public class FileNeedsProcessingNotification : INotification
 {
-    public IFileRecord File { get; set; } = null!;
+    public IFileRecord File { get; init; } = null!;
 }

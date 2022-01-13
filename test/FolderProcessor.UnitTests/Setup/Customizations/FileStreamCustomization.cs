@@ -62,11 +62,9 @@ public struct MockFiles
 
 public class MockFileStream : IFileStream
 {
-    private static ConcurrentDictionary<string, IFileStream> _mockFileStreams = new();
-    
     public string Folder { get; set; }
 
-    public MockFileStream()
+    private MockFileStream()
     {
         var dir = new MockFileSystem();
         var root = dir.Path.GetPathRoot(dir.AllDirectories.First());
@@ -76,24 +74,20 @@ public class MockFileStream : IFileStream
 
     public static MockFileStream Create()
     {
-        var fs = new MockFileStream();
-        
-        _mockFileStreams.TryAdd(fs.Folder, fs);
-
-        return fs;
+        return new MockFileStream();
     }
 }
 
 public class MockFileStreamHandler : 
     IStreamRequestHandler<IFileStream, IFileRecord>
 {
-    private static MockFileStreamHandler _global = new();
-    private static ConcurrentDictionary<string, Channel<IFileRecord>> _mockHandlers = new();
+    private static readonly MockFileStreamHandler Global = new();
+    private static readonly ConcurrentDictionary<string, Channel<IFileRecord>> MockHandlers = new();
     
     public static async Task AddFile(string path, string file)
     {
         var record = new FileRecord(Path.Combine(path, file));
-        if (_mockHandlers.TryGetValue(path, out var channel))
+        if (MockHandlers.TryGetValue(path, out var channel))
             await channel.Writer.WriteAsync(record, CancellationToken.None);
     }
 
@@ -101,7 +95,9 @@ public class MockFileStreamHandler :
         IFileStream request, 
         CancellationToken cancellationToken)
     {
-        var channel = _mockHandlers.GetOrAdd(request.Folder, _ => Channel.CreateUnbounded<IFileRecord>());
+        var channel = MockHandlers.GetOrAdd(request.Folder, _ => 
+            Channel.CreateUnbounded<IFileRecord>());
+        
         cancellationToken.Register(() => channel.Writer.Complete());
 
         return channel.Reader.ReadAllAsync(CancellationToken.None);
@@ -109,6 +105,6 @@ public class MockFileStreamHandler :
 
     public static MockFileStreamHandler Create()
     {
-        return _global;
+        return Global;
     }
 }

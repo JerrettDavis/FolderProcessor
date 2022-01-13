@@ -1,12 +1,16 @@
+using JetBrains.Annotations;
+
 // ReSharper disable once CheckNamespace
 namespace FolderProcessor.Host.Models;
 
+[PublicAPI]
 public enum WatcherType
 {
     Polling,
     FileSystemWatcher
 }
 
+[PublicAPI]
 public class WatcherSettings
 {
     public WatcherType Type { get; set; }
@@ -33,6 +37,7 @@ public class WatcherSettings
     }
 }
 
+[PublicAPI]
 public class PollingWatcherSettings : WatcherSettings
 {
     public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(30);

@@ -4,6 +4,7 @@ using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Monitoring.Notifications;
 using FolderProcessor.Stores;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -12,6 +13,7 @@ namespace FolderProcessor.Monitoring.Streams;
 /// <summary>
 /// Continually polls a given folder 
 /// </summary>
+[UsedImplicitly]
 public class PolledFileStreamHandler : 
     IStreamRequestHandler<PolledFileStream, IFileRecord>
 {

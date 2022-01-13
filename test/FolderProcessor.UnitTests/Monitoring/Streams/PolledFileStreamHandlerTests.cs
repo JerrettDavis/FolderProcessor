@@ -50,17 +50,17 @@ public class PolledFileStreamHandlerTests
         // Start watching
         var handle = handler.Handle(request, cancellationTokenSource.Token)
             .ToListAsync(CancellationToken.None);
-        // Run a task to create some files
+        // Run a task to create some files and cancel after some time
         await Task.Run(() =>
             {
                 files.ForEach(f => fileSystem.FileSystemWatcherFactory.NewFile(f));
                 // This should not be returned in the array since it's a directory
                 fileSystem.FileSystemWatcherFactory.NewFile(Path.Combine(root, "Data", "Data2"));
+                
+                // Wait some time and then cancel        
+                cancellationTokenSource.CancelAfter(TimeSpan.FromMilliseconds(1000));
             },
             CancellationToken.None);
-
-        // Wait some time and then cancel
-        cancellationTokenSource.CancelAfter(TimeSpan.FromMilliseconds(5000));
 
         // Await completion
         var result = await handle;
