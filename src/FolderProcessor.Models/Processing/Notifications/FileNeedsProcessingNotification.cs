@@ -1,7 +1,7 @@
 using FolderProcessor.Abstractions.Files;
 using MediatR;
 
-namespace FolderProcessor.Processing.Notifications;
+namespace FolderProcessor.Models.Processing.Notifications;
 
 public class FileNeedsProcessingNotification : INotification
 {

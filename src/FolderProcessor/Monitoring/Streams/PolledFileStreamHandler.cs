@@ -65,7 +65,8 @@ public class PolledFileStreamHandler :
                         .Where(f => !_seenFileStore.Contains(f))
                         .AsParallel()
                         .Select(async f =>
-                            await FileSeen(f, channel, cancellationToken)));
+                            await FileSeen(f, channel, cancellationToken))
+                        .ToList());
 
                 _logger.LogInformation("Polled {Directory} at: {Time}",
                     folder, DateTimeOffset.Now);

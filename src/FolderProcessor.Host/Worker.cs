@@ -1,5 +1,4 @@
 using FolderProcessor.Monitoring;
-using FolderProcessor.Monitoring.Streams;
 
 namespace FolderProcessor.Host;
 

@@ -12,7 +12,7 @@ public class WatcherSettings
     public WatcherType Type { get; set; }
     public string Folder { get; set; } = null!;
 
-    public WatcherSettings()
+    protected WatcherSettings()
     {
         Type = WatcherType.FileSystemWatcher;
     }

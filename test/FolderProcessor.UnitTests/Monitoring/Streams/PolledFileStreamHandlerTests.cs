@@ -12,7 +12,6 @@ using FolderProcessor.Stores;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using FolderProcessor.UnitTests.Setup.Customizations;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -20,13 +19,12 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams;
 
 public class PolledFileStreamHandlerTests
 {
-
     [Theory, AutoMoqDataWithFileSystem]
     public async Task ShouldSeeExistingFilesAndNewlyCreatedFiles(
         [Frozen] MyMockFileSystem fileSystem,
-        [Frozen] ISeenFileStore seenFileStore, 
+        [Frozen] ISeenFileStore seenFileStore,
         [Frozen] IPublisher publisher,
-        PolledFileStreamHandler handler) 
+        PolledFileStreamHandler handler)
     {
         // Arrange
         var root = fileSystem.AllDirectories.MinBy(r => r.Length)!;
@@ -41,13 +39,13 @@ public class PolledFileStreamHandlerTests
         {
             beenSeen, // This one should be skipped
             Path.Combine(root, "Data", "tmp.xml"),
-            Path.Combine(root, "Data","tmp2.xml"),
+            Path.Combine(root, "Data", "tmp2.xml"),
             Path.Combine(root, "Data", "tmp.bmp")
         };
-        var count = files.Count - 1; 
+        var count = files.Count - 1;
         fileSystem.AddDirectory(request.Folder);
         using var cancellationTokenSource = new CancellationTokenSource();
-        
+
         // Act
         // Start watching
         var handle = handler.Handle(request, cancellationTokenSource.Token)
@@ -57,10 +55,10 @@ public class PolledFileStreamHandlerTests
             {
                 files.ForEach(f => fileSystem.FileSystemWatcherFactory.NewFile(f));
                 // This should not be returned in the array since it's a directory
-                fileSystem.FileSystemWatcherFactory.NewFile(Path.Combine(root,"Data", "Data2"));
-            }, 
+                fileSystem.FileSystemWatcherFactory.NewFile(Path.Combine(root, "Data", "Data2"));
+            },
             CancellationToken.None);
-        
+
         // Wait some time and then cancel
         cancellationTokenSource.CancelAfter(TimeSpan.FromMilliseconds(5000));
 
@@ -70,11 +68,11 @@ public class PolledFileStreamHandlerTests
         // Assert
         result.Should().NotBeNullOrEmpty();
         result.Should().HaveCount(count);
-        Mock.Get(publisher).Verify(p => 
+        Mock.Get(publisher).Verify(p =>
                 p.Publish(It.IsAny<FileSeenNotification>(), It.IsAny<CancellationToken>()),
             Times.Exactly(count));
     }
-    
+
     [Theory, AutoMoqDataWithFileSystem]
     public async Task ShouldHandleFileNotFound(
         [Frozen] MyMockFileSystem fileSystem,
@@ -85,27 +83,27 @@ public class PolledFileStreamHandlerTests
         var root = fileSystem.AllDirectories.MinBy(r => r.Length)!;
         var request = new PolledFileStream
         {
-            Folder = Path.Combine(root, "Data", "2"), 
+            Folder = Path.Combine(root, "Data", "2"),
             Interval = TimeSpan.Zero
         };
         using var cancellationTokenSource = new CancellationTokenSource();
-        
+
         // Act
         // Start watching
         var handle = handler
             .Handle(request, cancellationTokenSource.Token)
             .ToListAsync(CancellationToken.None);
-        
+
         // Cancel monitoring
         cancellationTokenSource.CancelAfter(1000);
-        
+
         await handle;
 
         // Assert
         Mock.Get(publisher)
             .Verify(p => p.Publish(
-                It.IsAny<DirectoryNotFoundNotification>(), 
-                It.IsAny<CancellationToken>()), 
+                    It.IsAny<DirectoryNotFoundNotification>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
     }
 }

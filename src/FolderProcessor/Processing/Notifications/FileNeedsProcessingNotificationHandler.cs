@@ -1,3 +1,4 @@
+using FolderProcessor.Models.Processing.Notifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Abstractions.Monitoring.Streams;
-using FolderProcessor.Processing.Notifications;
+using FolderProcessor.Models.Processing.Notifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -48,30 +48,46 @@ public class StreamedFolderWatcher : IDisposable
     {
         _cancellationTokenSource = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken);
-
-        // Streams are lazily created at the beginning of the run.
-        var streams = _streams.Select(s => 
-                Task.Run(s, _cancellationTokenSource.Token))
-            .ToArray();
-        var deferredStreams = await Task.WhenAll(streams);
-        /* There's two Merge methods in AsyncEnumerableEx. Only the one that
-         * accepts an array supports concurrency. We need concurrency. */
-        var merged = AsyncEnumerableEx.Merge(deferredStreams)
-            .WithCancellation(_cancellationTokenSource.Token);
-
-        await foreach (var file in merged)
+        
+        
+        try
         {
-            // We can add filters to the watcher to only emit files we care about.
-            var satisfiedFilters = await _filters
-                .ToAsyncEnumerable()
-                .AllAwaitAsync(async f => await f.IsValid(file.Path), 
+            /* There's two Merge methods in AsyncEnumerableEx. Only the one that
+             * accepts an array supports concurrency. We need concurrency. */
+            // Streams are lazily created at the beginning of the run.
+            var streams = await Task.WhenAll(_streams.Select(s =>
+                    Task.Run(s, _cancellationTokenSource.Token))
+                .ToArray());
+            var merged = AsyncEnumerableEx.Merge(streams)
+                .WithCancellation(_cancellationTokenSource.Token);
+            await foreach (var file in merged)
+            {
+                // We can add filters to the watcher to only emit files we care about.
+                var satisfiedFilters = await _filters
+                    .ToAsyncEnumerable()
+                    .AllAwaitAsync(async f => await f.IsValid(file.Path),
+                        cancellationToken);
+                if (!satisfiedFilters) continue;
+
+                _logger.LogDebug("Incoming {File}", file);
+                await _publisher.Publish(
+                    new FileNeedsProcessingNotification {File = file},
                     cancellationToken);
-            if (!satisfiedFilters) continue;
-            
-            _logger.LogDebug("Incoming {File}", file);
-            await _publisher.Publish(
-                new FileNeedsProcessingNotification {File = file}, 
-                cancellationToken);
+            }
+        }
+        catch (AggregateException ae)
+        {
+            ae.Handle(x =>
+            {
+                if (x is OperationCanceledException)
+                    _logger.LogInformation("File Stream has been shut down");
+
+                return x is OperationCanceledException;
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Folder watcher has been shut down");   
         }
     }
 
@@ -84,7 +100,6 @@ public class StreamedFolderWatcher : IDisposable
 
     public void Dispose()
     {
-        StopAsync().RunSynchronously();
         _cancellationTokenSource?.Dispose();
         GC.SuppressFinalize(this);
     }
