@@ -1,8 +1,10 @@
 using System.IO.Abstractions;
+using JetBrains.Annotations;
 using MediatR;
 
 namespace FolderProcessor.Processing.Actions.Files;
 
+[PublicAPI]
 public class MoveFileRequest : IRequest
 {
     /// <summary>
@@ -16,6 +18,7 @@ public class MoveFileRequest : IRequest
     public string Destination { get; set; } = null!;
 }
 
+[UsedImplicitly]
 public class MoveFileRequestHandler : IRequestHandler<MoveFileRequest>
 {
     private readonly IFileSystem _fileSystem;

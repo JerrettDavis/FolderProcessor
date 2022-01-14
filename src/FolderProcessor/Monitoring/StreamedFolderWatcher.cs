@@ -75,7 +75,8 @@ public class StreamedFolderWatcher : IDisposable
                 // We can add filters to the watcher to only emit files we care about.
                 var satisfiedFilters = await _filters
                     .ToAsyncEnumerable()
-                    .AllAwaitAsync(async f => await f.IsValid(file.Path),
+                    .AllAwaitAsync(async f => 
+                            await f.IsValid(file.Path, cancellationToken),
                         cancellationToken);
                 if (!satisfiedFilters) continue;
 

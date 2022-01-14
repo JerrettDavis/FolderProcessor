@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+
 namespace FolderProcessor.Models.Processing.Configuration;
 
+[PublicAPI]
 public abstract class FileSettings
 {
     /// <summary>

@@ -1,8 +1,6 @@
 using System.IO.Abstractions;
 using FolderProcessor.Abstractions.Monitoring.Filters;
 using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Timeout;
 
 namespace FolderProcessor.Monitoring.Filters;
 
@@ -16,7 +14,7 @@ public class FileExistsFilter : IFileFilter
     private readonly ILogger<FileExistsFilter> _logger;
 
     public FileExistsFilter(
-        IFileSystem fileSystem, 
+        IFileSystem fileSystem,
         ILogger<FileExistsFilter> logger)
     {
         _fileSystem = fileSystem;
@@ -24,11 +22,9 @@ public class FileExistsFilter : IFileFilter
     }
 
     public async Task<bool> IsValid(
-        string input, 
+        string input,
         CancellationToken cancellationToken = default)
     {
-
         throw new NotImplementedException();
-
     }
 }
