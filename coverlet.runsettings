@@ -8,6 +8,7 @@
           <SingleHit>false</SingleHit>
           <UseSourceLink>true</UseSourceLink>
           <IncludeTestAssembly>true</IncludeTestAssembly>
+          <DoesNotReturnAttribute>true</DoesNotReturnAttribute>
           <SkipAutoProps>true</SkipAutoProps>
           <DeterministicReport>false</DeterministicReport>
         </Configuration>

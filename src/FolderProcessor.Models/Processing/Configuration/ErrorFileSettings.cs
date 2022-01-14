@@ -1,6 +1,6 @@
 namespace FolderProcessor.Models.Processing.Configuration;
 
-public class WorkingFileSettings : FileSettings
+public class ErrorFileSettings : FileSettings
 {
     /// <summary>
     /// Generates a guid if <see cref="FileSettings.UseGeneratedName"/> is set to
@@ -10,5 +10,4 @@ public class WorkingFileSettings : FileSettings
     /// <returns>The new file name</returns>
     public override string GetFileName(string input) => 
         UseGeneratedName ? Guid.NewGuid().ToString() : input;
-    
 }

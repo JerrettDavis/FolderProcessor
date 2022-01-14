@@ -25,7 +25,7 @@ public class FileStreamCustomization : ICustomization
         fixture.Register<IStreamRequestHandler<IFileStream, IFileRecord>>(MockFileStreamHandler.Create);
         var filter = fixture.Freeze<Mock<IFileFilter>>();
 
-        filter.Setup(f => f.IsValid(It.IsAny<string>()))
+        filter.Setup(f => f.IsValid(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         
         var mediatrMock = fixture.Freeze<Mock<IMediator>>();

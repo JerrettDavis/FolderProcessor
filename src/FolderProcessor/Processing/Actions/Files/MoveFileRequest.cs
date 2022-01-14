@@ -1,5 +1,4 @@
 using System.IO.Abstractions;
-using FolderProcessor.Models.Common;
 using MediatR;
 
 namespace FolderProcessor.Processing.Actions.Files;
@@ -10,16 +9,11 @@ public class MoveFileRequest : IRequest
     /// The source path for the file being moved.
     /// </summary>
     public string Source { get; set; } = null!;
-    
+
     /// <summary>
     /// The destination path for the file being moved.
     /// </summary>
     public string Destination { get; set; } = null!;
-    
-    /// <summary>
-    /// The retry mechanism to use in the event of an error
-    /// </summary>
-    public Retry Retry { get; set; } = Retry.None;
 }
 
 public class MoveFileRequestHandler : IRequestHandler<MoveFileRequest>
