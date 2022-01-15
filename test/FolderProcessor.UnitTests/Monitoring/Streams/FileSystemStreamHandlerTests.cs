@@ -11,7 +11,6 @@ using FolderProcessor.Stores;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using FolderProcessor.UnitTests.Setup.Customizations;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 

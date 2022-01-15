@@ -1,5 +1,4 @@
 using FolderProcessor.Monitoring;
-using FolderProcessor.Monitoring.Streams;
 
 namespace FolderProcessor.Host;
 
@@ -25,7 +24,5 @@ public class Worker : BackgroundService
             _logger.LogInformation("Worker running at: {Time}", DateTimeOffset.Now);
             await Task.Delay(1000, stoppingToken);
         }
-
-        await watcher.StopAsync();
     }
 }

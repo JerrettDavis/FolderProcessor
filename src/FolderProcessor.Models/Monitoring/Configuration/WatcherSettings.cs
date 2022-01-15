@@ -1,12 +1,8 @@
-// ReSharper disable once CheckNamespace
-namespace FolderProcessor.Host.Models;
+using JetBrains.Annotations;
 
-public enum WatcherType
-{
-    Polling,
-    FileSystemWatcher
-}
+namespace FolderProcessor.Models.Monitoring.Configuration;
 
+[PublicAPI]
 public class WatcherSettings
 {
     public WatcherType Type { get; set; }
@@ -26,24 +22,9 @@ public class WatcherSettings
     {
         return type switch
         {
-            WatcherType.Polling => new PollingWatcherSettings(folder),
+            WatcherType.Polling => new PollingFolderWatcherSettings(folder),
             WatcherType.FileSystemWatcher => new WatcherSettings(folder),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
-    }
-}
-
-public class PollingWatcherSettings : WatcherSettings
-{
-    public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(30);
-
-    public PollingWatcherSettings()
-    {
-        Type = WatcherType.Polling;
-    }
-
-    public PollingWatcherSettings(string folder) : this()
-    {
-        Folder = folder;
     }
 }

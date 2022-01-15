@@ -1,8 +1,11 @@
+using FolderProcessor.Models.Processing.Notifications;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Processing.Notifications;
 
+[UsedImplicitly]
 public class FileNeedsProcessingNotificationHandler : 
     INotificationHandler<FileNeedsProcessingNotification>
 {
