@@ -16,15 +16,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="MediatR" Version="10.0.0" />
+      <PackageReference Include="MediatR" Version="10.0.1" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+      <PackageReference Include="Polly" Version="7.2.2" />
       <PackageReference Include="System.Interactive.Async" Version="5.1.0" />
-      <PackageReference Include="System.IO.Abstractions" Version="16.0.8" />
+      <PackageReference Include="System.IO.Abstractions" Version="16.1.4" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\FolderProcessor.Abstractions\FolderProcessor.Abstractions.csproj" />
       <ProjectReference Include="..\FolderProcessor.Models\FolderProcessor.Models.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Processing\PreProcessing" />
     </ItemGroup>
 
 </Project>

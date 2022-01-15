@@ -8,6 +8,12 @@ using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Monitoring;
 
+/// <summary>
+/// Receives a collection of <see cref="IFileStream"/> and uses <see cref="IMediator"/>
+/// to setup a <see cref="IStreamRequestHandler{TRequest,TResponse}"/> for each.
+/// All the streams are combined and each yielded file publishes a
+/// <see cref="FileNeedsProcessingNotification"/>, which can be consumed by processors.
+/// </summary>
 public class StreamedFolderWatcher : IDisposable
 {
     private readonly ConcurrentBag<Func<IAsyncEnumerable<IFileRecord>>> _streams;
@@ -34,8 +40,7 @@ public class StreamedFolderWatcher : IDisposable
         fileStreams.ToList()
             .ForEach(f => AddStream(f, _cancellationTokenSource.Token));
     }
-
-    // TODO: I need to make this class restart if another stream is added while running.
+    
     private void AddStream<T>(
         T request,
         CancellationToken cancellationToken)
@@ -44,11 +49,16 @@ public class StreamedFolderWatcher : IDisposable
         _streams.Add(() => _mediator.CreateStream(request, cancellationToken));
     }
 
+    /// <summary>
+    /// Begins monitoring the handlers for each configured <see cref="IFileStream"/>,
+    /// publishing a <see cref="FileNeedsProcessingNotification"/> for each returned file.
+    /// </summary>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> used
+    /// to cancel <see cref="IFileStream"/> monitoring</param>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _cancellationTokenSource = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken);
-        
         
         try
         {
@@ -65,7 +75,8 @@ public class StreamedFolderWatcher : IDisposable
                 // We can add filters to the watcher to only emit files we care about.
                 var satisfiedFilters = await _filters
                     .ToAsyncEnumerable()
-                    .AllAwaitAsync(async f => await f.IsValid(file.Path),
+                    .AllAwaitAsync(async f => 
+                            await f.IsValid(file.Path, cancellationToken),
                         cancellationToken);
                 if (!satisfiedFilters) continue;
 

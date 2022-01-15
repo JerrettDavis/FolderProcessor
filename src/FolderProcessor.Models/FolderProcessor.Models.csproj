@@ -17,11 +17,15 @@
 
     <ItemGroup>
       <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-      <PackageReference Include="MediatR.Contracts" Version="1.0.0" />
+      <PackageReference Include="MediatR.Contracts" Version="1.0.1" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\FolderProcessor.Abstractions\FolderProcessor.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Common" />
     </ItemGroup>
 
 </Project>

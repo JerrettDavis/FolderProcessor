@@ -26,7 +26,9 @@ public class FileTypeFileFilter : IFileFilter
         _fileSystem = fileSystem;
     }
 
-    public Task<bool> IsValid(string input)
+    public Task<bool> IsValid(
+        string input,
+        CancellationToken cancellationToken = default)
     {
         if (!_extensions.Any()) return Task.FromResult(true);
         var extension = _fileSystem.Path.GetExtension(input);
