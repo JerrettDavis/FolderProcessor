@@ -27,12 +27,14 @@ jobs:
     - name: Test
       run: dotnet test --collect:"XPlat Code Coverage" --settings coverlet.runsettings --no-build --verbosity normal 
     - name: Create Test Coverage Badge
-      uses: jerrettdavis/dotnet-code-coverage-badge@v1.0.2
+      uses: jerrettdavis/dotnet-code-coverage-badge@v1.0.1
       id: create_coverage_badge
       with:
         label: Unit Test Coverage
         color: brightgreen
-        path: test/FolderProcessor.UnitTests/TestResults/*/coverage.opencover.xml
+        path: test/FolderProcessor.UnitTests/TestResults
+        filename: coverage.opencover.xml
+        discover-directory: true
         gist-filename: code-coverage.json
         gist-id: c0d1f93e62b9e0910bffca6a7c0aede0
         gist-auth-token: ${{ secrets.GIST_AUTH_TOKEN }}
