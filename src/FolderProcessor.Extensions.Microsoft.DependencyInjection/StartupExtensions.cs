@@ -1,9 +1,11 @@
 ﻿using System.IO.Abstractions;
 using System.Reflection;
+using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Monitoring;
+using FolderProcessor.Files;
 using FolderProcessor.Monitoring;
 using FolderProcessor.Monitoring.Filters;
 using FolderProcessor.Providers;
@@ -41,6 +43,9 @@ public static class StartupExtensions
             .AddSingleton<IFileSystem, FileSystem>()
             .AddSingleton<ISeenFileStore, SeenFileStore>()
             .AddSingleton<IWorkingFileStore, WorkingFileStore>()
+            .AddSingleton<ICompletedFileStore, CompletedFileStore>()
+            .AddSingleton<IErroredFileStore, ErroredFileStore>()
+            .AddSingleton<IFileMover, FileMover>()
             .AddSingleton<StreamedFolderWatcher>()
             .AddFolderWatchers(configuration);
     }
@@ -69,4 +74,16 @@ public static class StartupExtensions
         string folder) =>
         services.AddTransient<IWorkingDirectoryProvider>(s =>
             new StaticWorkingDirectoryProvider(folder, s.GetService<IFileSystem>()!));
+    
+    public static IServiceCollection UseStaticCompletedFile(
+        this IServiceCollection services,
+        string folder) =>
+        services.AddTransient<ICompletedDirectoryProvider>(s =>
+            new StaticCompletedDirectoryProvider(folder, s.GetService<IFileSystem>()!));
+
+    public static IServiceCollection UseStaticErroredFile(
+        this IServiceCollection services,
+        string folder) =>
+        services.AddTransient<IErroredDirectoryProvider>(s =>
+            new StaticErroredDirectoryProvider(folder, s.GetService<IFileSystem>()!));
 }

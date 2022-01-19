@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace FolderProcessor.Processing;
 
 [PublicAPI]
-public class ProcessFileRequest : IRequest, IProcessFileRequest
+public class ProcessFileRequest : IProcessFileRequest
 {
     public Guid FileId { get; set; }
 }
