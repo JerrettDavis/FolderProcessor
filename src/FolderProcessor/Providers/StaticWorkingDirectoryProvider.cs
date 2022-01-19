@@ -16,12 +16,6 @@ public class StaticWorkingDirectoryProvider : IWorkingDirectoryProvider
         _fileSystem = fileSystem;
     }
 
-    public Task<string> GetDirectory(
-        CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(_folder);
-    }
-
     public Task<string> GetFileDestinationPath(
         string filePath,
         CancellationToken cancellationToken = default)

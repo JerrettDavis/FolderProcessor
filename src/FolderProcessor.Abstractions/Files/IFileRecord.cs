@@ -19,4 +19,5 @@ public interface IFileRecord
     string Path { get; init; }
 
     DateTimeOffset Seen { get; }
+    string FileName { get; init; }
 }

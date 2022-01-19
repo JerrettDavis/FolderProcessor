@@ -119,13 +119,16 @@ public class PolledFileStreamHandler :
         Channel<FileRecord, FileRecord> channel,
         CancellationToken cancellationToken)
     {
-        var info = new FileRecord(path);
+        var fileName = _fileSystem.Path.GetFileName(path);
+        var info = new FileRecord(path, fileName);
                         
-        await _seenFileStore.AddAsync(info.Id, info, cancellationToken);
+        await _seenFileStore.AddAsync(info.Id, info, cancellationToken)
+            .ConfigureAwait(false);
         await _publisher.Publish(
             new FileSeenNotification {FileInfo = info}, 
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
-        await channel.Writer.WriteAsync(info, cancellationToken);
+        await channel.Writer.WriteAsync(info, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

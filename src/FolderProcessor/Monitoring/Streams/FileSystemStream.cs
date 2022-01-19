@@ -90,7 +90,10 @@ public class FileSystemStreamHandler :
         CancellationToken cancellationToken)
     {
         var path = args.FullPath;
-        if (await _seenFileStore.ContainsPathAsync(path, cancellationToken)) return;
+        if (await _seenFileStore
+                .ContainsPathAsync(path, cancellationToken)
+                .ConfigureAwait(false)) 
+            return;
         
         var fileRecord = _seenFileStore.AddFileRecord(path);
         _logger.LogDebug("Saw {Record}", fileRecord);
@@ -101,10 +104,13 @@ public class FileSystemStreamHandler :
             if ((_fileSystem.File.GetAttributes(path) & 
                  FileAttributes.Directory) != 0) return;
 
-            await channel.Writer.WriteAsync(fileRecord, cancellationToken);
+            await channel.Writer
+                .WriteAsync(fileRecord, cancellationToken)
+                .ConfigureAwait(false);
             await _publisher.Publish(
                 new FileSeenNotification { FileInfo = fileRecord }, 
-                cancellationToken);
+                cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (Exception ex) when 
             (ex is FileNotFoundException or DirectoryNotFoundException)
@@ -113,7 +119,9 @@ public class FileSystemStreamHandler :
                 "File {File} was not found. During a routine pre-check. " +
                 "Will not be broadcast", path);
             
-            await _seenFileStore.RemoveAsync(fileRecord.Id, cancellationToken);
+            await _seenFileStore
+                .RemoveAsync(fileRecord.Id, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
