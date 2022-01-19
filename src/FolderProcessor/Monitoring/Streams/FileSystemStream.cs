@@ -2,9 +2,8 @@ using System.IO.Abstractions;
 using System.Threading.Channels;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
-using FolderProcessor.Models.Files;
+using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Monitoring.Notifications;
-using FolderProcessor.Stores;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -52,7 +51,7 @@ public class FileSystemStreamHandler :
     {
         _logger.LogInformation("Started monitoring {Folder}", request.Folder);
         
-        var channel = Channel.CreateUnbounded<FileRecord>();
+        var channel = Channel.CreateUnbounded<IFileRecord>();
         var watcher = SetupWatcher(request.Folder, channel, cancellationToken);
         
         cancellationToken.Register(() =>
@@ -67,7 +66,7 @@ public class FileSystemStreamHandler :
     
     private IFileSystemWatcher SetupWatcher(
         string folder, 
-        Channel<FileRecord, FileRecord> channel,
+        Channel<IFileRecord, IFileRecord> channel,
         CancellationToken cancellationToken)
     {
         var watcher = _fileSystem.FileSystemWatcher.CreateNew(folder);
@@ -87,25 +86,24 @@ public class FileSystemStreamHandler :
 
     private async void OnWatcherOnChanged(
         FileSystemEventArgs args, 
-        Channel<FileRecord, FileRecord> channel,
+        Channel<IFileRecord, IFileRecord> channel,
         CancellationToken cancellationToken)
     {
         var path = args.FullPath;
-        if (_seenFileStore.Contains(path)) return;
+        if (await _seenFileStore.ContainsPathAsync(path, cancellationToken)) return;
         
-        _seenFileStore.Add(path);
+        var fileRecord = _seenFileStore.AddFileRecord(path);
+        _logger.LogDebug("Saw {Record}", fileRecord);
 
         try
         {
             // We receive events about directories, but we don't care about them.
             if ((_fileSystem.File.GetAttributes(path) & 
                  FileAttributes.Directory) != 0) return;
-            
-            var record = new FileRecord(path);
-        
-            await channel.Writer.WriteAsync(record, cancellationToken);
+
+            await channel.Writer.WriteAsync(fileRecord, cancellationToken);
             await _publisher.Publish(
-                new FileSeenNotification { FileInfo = record }, 
+                new FileSeenNotification { FileInfo = fileRecord }, 
                 cancellationToken);
         }
         catch (Exception ex) when 
@@ -115,7 +113,7 @@ public class FileSystemStreamHandler :
                 "File {File} was not found. During a routine pre-check. " +
                 "Will not be broadcast", path);
             
-            _seenFileStore.Remove(path);
+            await _seenFileStore.RemoveAsync(fileRecord.Id, cancellationToken);
         }
         catch (OperationCanceledException)
         {

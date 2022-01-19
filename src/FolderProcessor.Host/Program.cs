@@ -1,10 +1,7 @@
-using System.IO.Abstractions;
-using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Monitoring;
 using FolderProcessor.Host;
 using FolderProcessor.Models.Monitoring.Configuration;
-using FolderProcessor.Monitoring.Filters;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((host, services) =>
@@ -19,7 +16,8 @@ var host = Host.CreateDefaultBuilder(args)
                 Interval = TimeSpan.FromSeconds(30)
             })
             .AddFolderWatcher(() => new WatcherSettings("Data/Child"))
-            .AddSingleton<IFileFilter>(s => new FileTypeFileFilter(s.GetService<IFileSystem>()!, new []{ ".txt" }))
+            .AddFileTypeFilter(".txt")
+            .UseStaticWorkingFile("Working")
             .AddHostedService<Worker>();
     })
     .Build();

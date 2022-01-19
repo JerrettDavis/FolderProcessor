@@ -9,3 +9,4 @@ riderModule.iml
 TestResults/
 
 src/FolderProcessor.Host/Data/
+src/FolderProcessor.Host/Working/
