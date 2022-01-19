@@ -1,6 +1,8 @@
+using MediatR;
+
 namespace FolderProcessor.Abstractions.Processing;
 
-public interface IProcessFileRequest
+public interface IProcessFileRequest : IRequest
 {
     Guid FileId { get; set; }
 }

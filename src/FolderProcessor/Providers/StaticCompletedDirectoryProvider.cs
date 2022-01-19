@@ -3,11 +3,11 @@ using FolderProcessor.Abstractions.Providers;
 
 namespace FolderProcessor.Providers;
 
-public class StaticWorkingDirectoryProvider : 
+public class StaticCompletedDirectoryProvider : 
     StaticDirectoryProvider,
-    IWorkingDirectoryProvider
+    ICompletedDirectoryProvider
 {
-    public StaticWorkingDirectoryProvider(
+    public StaticCompletedDirectoryProvider(
         string folder, 
         IFileSystem fileSystem) : base(folder, fileSystem)
     {

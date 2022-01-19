@@ -9,25 +9,27 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Processing;
+using FolderProcessor.Processing.PostProcessing;
 using FolderProcessor.Processing.PreProcessing;
 using FolderProcessor.UnitTests.Setup.Attributes;
+using MediatR;
 using Moq;
 using Xunit;
 
-namespace FolderProcessor.UnitTests.Processing.PreProcessing;
+namespace FolderProcessor.UnitTests.Processing.PostProcessing;
 
 public class CompletedFileMovingBehaviorTests
 {
     [Theory, AutoMoqDataWithFileSystem]
     public async Task ShouldMoveFileToNewFolder(
-        [Frozen] ISeenFileStore seenFileStore,
+        [Frozen] ICompletedFileStore completedFileStore,
         [Frozen] IWorkingFileStore workingFileStore,
         [Frozen] Mock<IFileMover> fileMover,
         FileRecord record,
-        WorkingFileMovingBehavior<IProcessFileRequest> behavior) 
+        CompletedFileMovingBehavior<IProcessFileRequest, Unit> behavior) 
     {
         // Arrange
-        await seenFileStore.AddAsync(record.Id, record);
+        await workingFileStore.AddAsync(record.Id, record);
         
         var request = new ProcessFileRequest {FileId = record.Id};
         var newName = Guid.NewGuid().ToString();
@@ -39,11 +41,11 @@ public class CompletedFileMovingBehaviorTests
             .ReturnsAsync(newName);
 
         // Act
-        await behavior.Process(request, CancellationToken.None);
-        var newFile = await workingFileStore.GetAsync(record.Id, CancellationToken.None);
+        await behavior.Process(request, Unit.Value, CancellationToken.None);
+        var newFile = await completedFileStore.GetAsync(record.Id, CancellationToken.None);
         
         // Assert
-        (await workingFileStore.ContainsAsync(record.Id)).Should().BeTrue();
+        (await completedFileStore.ContainsAsync(record.Id)).Should().BeTrue();
         newFile.Path.Should().Be(newName);
     }
 }

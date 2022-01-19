@@ -18,6 +18,6 @@ public interface IFileRecord
     /// </summary>
     string Path { get; init; }
 
-    DateTimeOffset Seen { get; }
+    DateTimeOffset Touched { get; }
     string FileName { get; init; }
 }

@@ -10,3 +10,4 @@ TestResults/
 
 src/FolderProcessor.Host/Data/
 src/FolderProcessor.Host/Working/
+src/FolderProcessor.Host/Completed/

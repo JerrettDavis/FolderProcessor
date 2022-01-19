@@ -18,6 +18,7 @@ var host = Host.CreateDefaultBuilder(args)
             .AddFolderWatcher(() => new WatcherSettings("Data/Child"))
             .AddFileTypeFilter(".txt")
             .UseStaticWorkingFile("Working")
+            .UseStaticCompletedFile("Completed")
             .AddHostedService<Worker>();
     })
     .Build();
