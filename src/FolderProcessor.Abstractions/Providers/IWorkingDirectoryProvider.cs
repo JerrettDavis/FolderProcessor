@@ -2,7 +2,6 @@ namespace FolderProcessor.Abstractions.Providers;
 
 public interface IWorkingDirectoryProvider
 {
-    Task<string> GetDirectory(CancellationToken cancellationToken = default);
     /// <summary>
     /// Different generators can be applied to files to rename them, change their
     /// extension, or otherwise influence the file destination. This method applies

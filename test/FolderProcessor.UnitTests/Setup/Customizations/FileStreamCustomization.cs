@@ -86,7 +86,7 @@ public class MockFileStreamHandler :
     
     public static async Task AddFile(string path, string file)
     {
-        var record = new FileRecord(Path.Combine(path, file));
+        var record = new FileRecord(Path.Combine(path, file), file);
         if (MockHandlers.TryGetValue(path, out var channel))
             await channel.Writer.WriteAsync(record, CancellationToken.None);
     }

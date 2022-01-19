@@ -11,7 +11,7 @@ public class FileRecordSanityTests
     public void GuidShouldPersist()
     {
         // Arrange & Act
-        var file = new FileRecord(Guid.NewGuid().ToString());
+        var file = new FileRecord(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
         var sameFileDiffPath = file with {Path = Guid.NewGuid().ToString()};
         
         // Assert
