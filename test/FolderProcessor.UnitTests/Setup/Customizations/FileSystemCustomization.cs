@@ -2,6 +2,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using AutoFixture;
+using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Stores;
 using Moq;
 

@@ -29,7 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Processing\PreProcessing" />
+      <Folder Include="Providers" />
     </ItemGroup>
 
 </Project>

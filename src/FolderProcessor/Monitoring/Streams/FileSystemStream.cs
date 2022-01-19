@@ -2,9 +2,9 @@ using System.IO.Abstractions;
 using System.Threading.Channels;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
+using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Monitoring.Notifications;
-using FolderProcessor.Stores;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -91,9 +91,9 @@ public class FileSystemStreamHandler :
         CancellationToken cancellationToken)
     {
         var path = args.FullPath;
-        if (_seenFileStore.Contains(path)) return;
+        if (await _seenFileStore.ContainsPathAsync(path, cancellationToken)) return;
         
-        _seenFileStore.Add(path);
+        var fileRecord = _seenFileStore.AddFileRecord(path);
 
         try
         {
@@ -115,7 +115,7 @@ public class FileSystemStreamHandler :
                 "File {File} was not found. During a routine pre-check. " +
                 "Will not be broadcast", path);
             
-            _seenFileStore.Remove(path);
+            await _seenFileStore.RemoveAsync(fileRecord.Id, cancellationToken);
         }
         catch (OperationCanceledException)
         {

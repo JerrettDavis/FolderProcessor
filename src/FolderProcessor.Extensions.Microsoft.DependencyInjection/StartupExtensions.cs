@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions;
 using System.Reflection;
+using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Monitoring;
 using FolderProcessor.Monitoring;
 using FolderProcessor.Stores;

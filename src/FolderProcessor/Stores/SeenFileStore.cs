@@ -1,4 +1,8 @@
 using System.Collections.Concurrent;
+using FolderProcessor.Abstractions.Files;
+using FolderProcessor.Abstractions.Stores;
+using FolderProcessor.Common.Exceptions;
+using FolderProcessor.Models.Files;
 
 namespace FolderProcessor.Stores;
 
@@ -8,23 +12,79 @@ namespace FolderProcessor.Stores;
 /// </summary>
 public class SeenFileStore : ISeenFileStore
 {
-    private readonly ConcurrentDictionary<string, FileInfo> _seen = new();
-    
-    /// <inheritdoc />
-    public void Add(string fileName)
+    private readonly ConcurrentDictionary<Guid, IFileRecord> _seen = new();
+
+    public void Add(Guid key, IFileRecord item)
     {
-        _seen.AddOrUpdate(fileName, v => new FileInfo(v), (_, info) => info);
+        if (!_seen.TryAdd(key, item))
+            throw new AddToStoreException(key.ToString(), item);
     }
 
-    /// <inheritdoc />
-    public bool Contains(string fileName)
+    public Task AddAsync(
+        Guid key, 
+        IFileRecord item, 
+        CancellationToken cancellationToken = default)
     {
-        return _seen.ContainsKey(fileName);
+        return Task.Run(() => Add(key, item), cancellationToken);
     }
 
-    /// <inheritdoc />
-    public void Remove(string fileName)
+    public bool Contains(Guid key)
     {
-        _seen.Remove(fileName, out _);
+        return _seen.ContainsKey(key);
+    }
+
+    public Task<bool> ContainsAsync(
+        Guid key, 
+        CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => Contains(key), cancellationToken);
+    }
+
+    public IFileRecord Get(Guid key)
+    {
+        if (!_seen.TryGetValue(key, out var item))
+            throw new GetFromStoreException(key);
+
+        return item;
+    }
+
+    public Task<IFileRecord> GetAsync(
+        Guid key, 
+        CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => Get(key), cancellationToken);
+    }
+
+    public void Remove(Guid key)
+    {
+        if (!_seen.TryRemove(key, out _))
+            throw new RemoveFromStoreException(key.ToString());
+    }
+
+    public Task RemoveAsync(
+        Guid key, 
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IFileRecord AddFileRecord(string filePath)
+    {
+        var record = new FileRecord(filePath);
+        
+        Add(record.Id, record);
+        return record;
+    }
+
+    public bool ContainsPath(string filePath)
+    {
+        return _seen.Values.Any(p => p.Path.Equals(filePath));
+    }
+
+    public Task<bool> ContainsPathAsync(
+        string filePath, 
+        CancellationToken cancellationToken)
+    {
+        return Task.Run(() => ContainsPath(filePath), cancellationToken);
     }
 }
