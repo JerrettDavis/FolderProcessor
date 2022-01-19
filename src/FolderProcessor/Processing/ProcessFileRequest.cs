@@ -16,16 +16,16 @@ public class ProcessFileRequest : IProcessFileRequest
 public class ProcessFileRequestHandler : IRequestHandler<ProcessFileRequest>
 {
     private readonly IWorkingFileStore _fileStore;
-    private readonly IEnumerable<IProcessor> _processors;
+    private readonly ICollection<IProcessor> _processors;
     private readonly ILogger<ProcessFileRequestHandler> _logger;
 
     public ProcessFileRequestHandler(
-        IWorkingFileStore fileStore, 
-        IEnumerable<IProcessor> processors, 
+        IWorkingFileStore fileStore,
+        IEnumerable<IProcessor> processors,
         ILogger<ProcessFileRequestHandler> logger)
     {
         _fileStore = fileStore;
-        _processors = processors;
+        _processors = processors.ToList();
         _logger = logger;
     }
 
@@ -33,9 +33,24 @@ public class ProcessFileRequestHandler : IRequestHandler<ProcessFileRequest>
         ProcessFileRequest request,
         CancellationToken cancellationToken)
     {
-        var file = await _fileStore.GetAsync(request.FileId, cancellationToken);
-        _logger.LogInformation("Houston, we have liftoff! {File}", file);
-        
+        var file = await _fileStore
+            .GetAsync(request.FileId, cancellationToken)
+            .ConfigureAwait(false);
+
+        _logger.LogInformation("Firing up processors...");
+
+        await _processors
+            .AsParallel()
+            .ToAsyncEnumerable()
+            .WhereAwaitWithCancellation(async (p, t) =>
+                await p.AppliesAsync(file, t))
+            .ForEachAwaitWithCancellationAsync(async (p, t) =>
+                    await p.Process(file, t),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        _logger.LogInformation("{File} has been processed", file);
+
         return Unit.Value;
     }
 }
