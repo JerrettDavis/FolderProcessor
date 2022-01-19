@@ -28,4 +28,8 @@
       <ProjectReference Include="..\FolderProcessor.Models\FolderProcessor.Models.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Processing\PreProcessing" />
+    </ItemGroup>
+
 </Project>
