@@ -44,6 +44,7 @@ public static class StartupExtensions
             .AddSingleton<ISeenFileStore, SeenFileStore>()
             .AddSingleton<IWorkingFileStore, WorkingFileStore>()
             .AddSingleton<ICompletedFileStore, CompletedFileStore>()
+            .AddSingleton<IErroredFileStore, ErroredFileStore>()
             .AddSingleton<IFileMover, FileMover>()
             .AddSingleton<StreamedFolderWatcher>()
             .AddFolderWatchers(configuration);
@@ -79,4 +80,10 @@ public static class StartupExtensions
         string folder) =>
         services.AddTransient<ICompletedDirectoryProvider>(s =>
             new StaticCompletedDirectoryProvider(folder, s.GetService<IFileSystem>()!));
+
+    public static IServiceCollection UseStaticErroredFile(
+        this IServiceCollection services,
+        string folder) =>
+        services.AddTransient<IErroredDirectoryProvider>(s =>
+            new StaticErroredDirectoryProvider(folder, s.GetService<IFileSystem>()!));
 }

@@ -22,7 +22,8 @@ public class FileSystemCustomization : ICustomization
         fixture.Register<ISeenFileStore>(() => new 
             SeenFileStore(Mock.Of<ILogger<SeenFileStore>>(), mock));
         fixture.Register<IWorkingFileStore>(() => new WorkingFileStore());
-        fixture.Register<ICompletedFileStore>(() => new CompletedFileStore());;
+        fixture.Register<ICompletedFileStore>(() => new CompletedFileStore());
+        fixture.Register<IErroredFileStore>(() => new ErroredFileStore());
         fixture.Register<IWorkingDirectoryProvider>(() => 
             new StaticWorkingDirectoryProvider("Working", mock));
         fixture.Register<ICompletedDirectoryProvider>(() =>

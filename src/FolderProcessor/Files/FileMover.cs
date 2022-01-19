@@ -44,8 +44,9 @@ public class FileMover : IFileMover
         { 
             // TODO: Look into retry if file already exists (Polly) 
             _logger.LogError(
-                "An Exception '{Exception}' was encountered while trying to move {File} to {Destination}",
-                ex, file, destination);
+                ex,
+                "An Exception was encountered while trying to move {File} to {Destination}",
+                file, destination);
             throw;
         }
     }

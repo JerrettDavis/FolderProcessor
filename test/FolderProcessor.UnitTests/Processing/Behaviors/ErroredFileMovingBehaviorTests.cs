@@ -9,23 +9,23 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Processing;
-using FolderProcessor.Processing.PostProcessing;
+using FolderProcessor.Processing.Behaviors;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using MediatR;
 using Moq;
 using Xunit;
 
-namespace FolderProcessor.UnitTests.Processing.PostProcessing;
+namespace FolderProcessor.UnitTests.Processing.Behaviors;
 
-public class CompletedFileMovingBehaviorTests
+public class ErroredFileMovingBehaviorTests
 {
     [Theory, AutoMoqDataWithFileSystem]
     public async Task ShouldMoveFileToNewFolder(
-        [Frozen] ICompletedFileStore completedFileStore,
+        [Frozen] IErroredFileStore erroredFileStore,
         [Frozen] IWorkingFileStore workingFileStore,
         [Frozen] Mock<IFileMover> fileMover,
         FileRecord record,
-        CompletedFileMovingBehavior<IProcessFileRequest, Unit> behavior) 
+        ErroredFileMovingBehavior<IProcessFileRequest, Unit> behavior) 
     {
         // Arrange
         await workingFileStore.AddAsync(record.Id, record);
@@ -34,17 +34,21 @@ public class CompletedFileMovingBehaviorTests
         var newName = Guid.NewGuid().ToString();
         
         fileMover.Setup(f => f.MoveFileAsync(
-            It.IsAny<IFileRecord>(),
-            It.IsAny<IDirectoryProvider>(),
-            It.IsAny<CancellationToken>()))
+                It.IsAny<IFileRecord>(),
+                It.IsAny<IDirectoryProvider>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(newName);
 
         // Act
-        await behavior.Process(request, Unit.Value, CancellationToken.None);
-        var newFile = await completedFileStore.GetAsync(record.Id, CancellationToken.None);
+        Func<Task<Unit>> func = async () => await behavior
+            .Handle(request, CancellationToken.None, () => throw new Exception());
+
+        await func.Should().ThrowAsync<Exception>();
+        
+        var newFile = await erroredFileStore.GetAsync(record.Id, CancellationToken.None);
         
         // Assert
-        (await completedFileStore.ContainsAsync(record.Id)).Should().BeTrue();
+        (await erroredFileStore.ContainsAsync(record.Id)).Should().BeTrue();
         newFile.Path.Should().Be(newName);
     }
 }

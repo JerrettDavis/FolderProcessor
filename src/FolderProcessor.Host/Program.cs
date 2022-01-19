@@ -19,6 +19,7 @@ var host = Host.CreateDefaultBuilder(args)
             .AddFileTypeFilter(".txt")
             .UseStaticWorkingFile("Working")
             .UseStaticCompletedFile("Completed")
+            .UseStaticErroredFile("Errored")
             .AddHostedService<Worker>();
     })
     .Build();
