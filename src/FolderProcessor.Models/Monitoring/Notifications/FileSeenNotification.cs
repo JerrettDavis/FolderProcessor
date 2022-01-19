@@ -1,5 +1,5 @@
+using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
-using FolderProcessor.Models.Files;
 using JetBrains.Annotations;
 using MediatR;
 
@@ -12,5 +12,5 @@ namespace FolderProcessor.Models.Monitoring.Notifications;
 [PublicAPI]
 public class FileSeenNotification : INotification
 {
-    public FileRecord FileInfo { get; init; } = null!;
+    public IFileRecord FileInfo { get; init; } = null!;
 }

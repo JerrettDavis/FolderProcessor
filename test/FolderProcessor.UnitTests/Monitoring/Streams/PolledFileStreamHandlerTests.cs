@@ -6,9 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture.Xunit2;
 using FluentAssertions;
+using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Monitoring.Notifications;
 using FolderProcessor.Monitoring.Streams;
-using FolderProcessor.Stores;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using FolderProcessor.UnitTests.Setup.Customizations;
 using MediatR;
@@ -29,7 +29,7 @@ public class PolledFileStreamHandlerTests
         // Arrange
         var root = fileSystem.AllDirectories.MinBy(r => r.Length)!;
         var beenSeen = Path.Combine(root, @"Data", "BeenSeen.txt");
-        seenFileStore.Add(beenSeen);
+        seenFileStore.AddFileRecord(beenSeen);
         var request = new PolledFileStream
         {
             Folder = Path.Combine(root, "Data"),

@@ -21,10 +21,10 @@ public class FileExistsFilter : IFileFilter
         _logger = logger;
     }
 
-    public async Task<bool> IsValid(
+    public Task<bool> IsValid(
         string input,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(_fileSystem.File.Exists(input));
     }
 }

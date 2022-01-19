@@ -2,9 +2,9 @@ using System.IO.Abstractions;
 using System.Threading.Channels;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
+using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Monitoring.Notifications;
-using FolderProcessor.Stores;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -81,7 +81,7 @@ public class PolledFileStreamHandler :
             {
                 await Task.WhenAll(
                     _fileSystem.Directory.EnumerateFiles(folder)
-                        .Where(f => !_seenFileStore.Contains(f))
+                        .Where(f => !_seenFileStore.ContainsPath(f))
                         .AsParallel()
                         .Select(async f =>
                             await FileSeen(f, channel, cancellationToken))
@@ -119,13 +119,16 @@ public class PolledFileStreamHandler :
         Channel<FileRecord, FileRecord> channel,
         CancellationToken cancellationToken)
     {
-        var info = new FileRecord(path);
+        var fileName = _fileSystem.Path.GetFileName(path);
+        var info = new FileRecord(path, fileName);
                         
-        _seenFileStore.Add(path);
+        await _seenFileStore.AddAsync(info.Id, info, cancellationToken)
+            .ConfigureAwait(false);
         await _publisher.Publish(
             new FileSeenNotification {FileInfo = info}, 
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
-        await channel.Writer.WriteAsync(info, cancellationToken);
+        await channel.Writer.WriteAsync(info, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

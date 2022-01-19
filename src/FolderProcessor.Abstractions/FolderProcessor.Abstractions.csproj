@@ -16,8 +16,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Monitoring\Notifications" />
-      <Folder Include="Processing\Notifications" />
+      <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+      <PackageReference Include="MediatR.Contracts" Version="1.0.1" />
     </ItemGroup>
 
     <ItemGroup>

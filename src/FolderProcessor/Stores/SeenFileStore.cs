@@ -1,4 +1,9 @@
 using System.Collections.Concurrent;
+using System.IO.Abstractions;
+using FolderProcessor.Abstractions.Files;
+using FolderProcessor.Abstractions.Stores;
+using FolderProcessor.Models.Files;
+using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Stores;
 
@@ -6,25 +11,45 @@ namespace FolderProcessor.Stores;
 /// Maintains a thread-safe <see cref="ConcurrentDictionary{TKey,TValue}"/> to
 /// maintain a collection of all seen files.
 /// </summary>
-public class SeenFileStore : ISeenFileStore
+public class SeenFileStore : Store<Guid, IFileRecord>, ISeenFileStore
 {
-    private readonly ConcurrentDictionary<string, FileInfo> _seen = new();
-    
-    /// <inheritdoc />
-    public void Add(string fileName)
+    private readonly ILogger<SeenFileStore> _logger;
+    private readonly IFileSystem _fileSystem;
+
+    public SeenFileStore(
+        ILogger<SeenFileStore> logger, 
+        IFileSystem fileSystem)
     {
-        _seen.AddOrUpdate(fileName, v => new FileInfo(v), (_, info) => info);
+        _logger = logger;
+        _fileSystem = fileSystem;
     }
 
-    /// <inheritdoc />
-    public bool Contains(string fileName)
+    public IFileRecord AddFileRecord(string filePath)
     {
-        return _seen.ContainsKey(fileName);
+        var fileName = _fileSystem.Path.GetFileName(filePath);
+        var record = new FileRecord(filePath, fileName);
+
+        base.Add(record.Id, record);
+        _logger.LogDebug("Added {Record} to {Store}", record, nameof(SeenFileStore));
+        return record;
     }
 
-    /// <inheritdoc />
-    public void Remove(string fileName)
+    public bool ContainsPath(string filePath)
     {
-        _seen.Remove(fileName, out _);
+        return Dictionary.Values.Any(p => p.Path.Equals(filePath));
+    }
+
+    public async Task<bool> ContainsPathAsync(
+        string filePath,
+        CancellationToken cancellationToken)
+    {
+        return await Task.Run(() => ContainsPath(filePath), cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public override void Remove(Guid key)
+    {
+        _logger.LogInformation("Removing {key} from {Store}", key, nameof(SeenFileStore));
+        base.Remove(key);
     }
 }

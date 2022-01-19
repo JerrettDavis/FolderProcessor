@@ -8,7 +8,6 @@
         <Authors>Jerrett Davis</Authors>
         <Description>Startup extensions for FolderProcessor</Description>
         <PackageProjectUrl>https://github.com/JerrettDavis/FolderProcessor</PackageProjectUrl>
-        <PackageLicenseUrl></PackageLicenseUrl>
         <RepositoryUrl>https://github.com/JerrettDavis/FolderProcessor</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <NeutralLanguage>en-US</NeutralLanguage>

@@ -2,7 +2,11 @@ using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using AutoFixture;
+using FolderProcessor.Abstractions.Providers;
+using FolderProcessor.Abstractions.Stores;
+using FolderProcessor.Providers;
 using FolderProcessor.Stores;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace FolderProcessor.UnitTests.Setup.Customizations;
@@ -15,7 +19,15 @@ public class FileSystemCustomization : ICustomization
         fixture.Register<IFileSystem>(() => mock);
         fixture.Register<MockFileSystem>(() => mock);
         fixture.Register(() => mock);
-        fixture.Register<ISeenFileStore>(() => new SeenFileStore());
+        fixture.Register<ISeenFileStore>(() => new 
+            SeenFileStore(Mock.Of<ILogger<SeenFileStore>>(), mock));
+        fixture.Register<IWorkingFileStore>(() => new WorkingFileStore());
+        fixture.Register<ICompletedFileStore>(() => new CompletedFileStore());
+        fixture.Register<IErroredFileStore>(() => new ErroredFileStore());
+        fixture.Register<IWorkingDirectoryProvider>(() => 
+            new StaticWorkingDirectoryProvider("Working", mock));
+        fixture.Register<ICompletedDirectoryProvider>(() =>
+            new StaticCompletedDirectoryProvider("Completed", mock));
     }
 }
 
