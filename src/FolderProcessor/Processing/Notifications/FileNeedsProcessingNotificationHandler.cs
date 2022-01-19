@@ -10,11 +10,14 @@ public class FileNeedsProcessingNotificationHandler :
     INotificationHandler<FileNeedsProcessingNotification>
 {
     private readonly ILogger<FileNeedsProcessingNotificationHandler> _logger;
-
+    private readonly IMediator _mediator;
+    
     public FileNeedsProcessingNotificationHandler(
-        ILogger<FileNeedsProcessingNotificationHandler> logger)
+        ILogger<FileNeedsProcessingNotificationHandler> logger, 
+        IMediator mediator)
     {
         _logger = logger;
+        _mediator = mediator;
     }
 
     public Task Handle(
@@ -22,6 +25,9 @@ public class FileNeedsProcessingNotificationHandler :
         CancellationToken cancellationToken)
     {
         _logger.LogDebug("{File} needs processing...", notification.File);
-        return Task.CompletedTask;
+
+        return _mediator.Send(
+            new ProcessFileRequest {FileId = notification.File.Id}, 
+            cancellationToken);
     }
 }
