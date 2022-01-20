@@ -1,9 +1,11 @@
 using System.IO.Abstractions;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Processing;
+using JetBrains.Annotations;
 
 namespace FolderProcessor.Host.Processors;
 
+[UsedImplicitly]
 public class LogFileContentProcessor : IProcessor
 {
     private readonly ILogger<LogFileContentProcessor> _logger;

@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+
 namespace FolderProcessor.Abstractions.Providers;
 
+[PublicAPI]
 public interface IDirectoryProvider
 {
     /// <summary>

@@ -4,11 +4,13 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Processing.Notifications;
+using JetBrains.Annotations;
 using MediatR;
 using MediatR.Pipeline;
 
 namespace FolderProcessor.Processing.PostProcessing;
 
+[UsedImplicitly]
 public class CompletedFileMovingBehavior<TRequest, TResponse> : 
     IRequestPostProcessor<TRequest, TResponse> 
     where TRequest : IRequest<TResponse>, IProcessFileRequest

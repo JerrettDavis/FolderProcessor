@@ -4,11 +4,13 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Processing.Notifications;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Processing.Behaviors;
 
+[UsedImplicitly]
 public class ErroredFileMovingBehavior<TRequest, TResponse> : 
     IPipelineBehavior<TRequest, TResponse> 
     where TRequest : IRequest<TResponse>, IProcessFileRequest

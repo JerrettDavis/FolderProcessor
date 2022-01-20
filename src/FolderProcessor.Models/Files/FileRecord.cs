@@ -1,7 +1,9 @@
 using FolderProcessor.Abstractions.Files;
+using JetBrains.Annotations;
 
 namespace FolderProcessor.Models.Files;
 
+[PublicAPI]
 public record FileRecord(string Path, string FileName) : IFileRecord
 {
     public Guid Id { get; init; } = Guid.NewGuid();

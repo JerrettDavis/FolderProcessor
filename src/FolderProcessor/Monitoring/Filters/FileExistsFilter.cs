@@ -25,6 +25,17 @@ public class FileExistsFilter : IFileFilter
         string input,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(_fileSystem.File.Exists(input));
+        try
+        {
+            return Task.FromResult(_fileSystem.File.Exists(input));
+        }
+        catch (IOException ex)
+        {
+            _logger.LogError(ex, 
+                "Encountered an error while trying to check if {Path} exists...", 
+                input);
+            
+            return Task.FromResult(false);
+        }
     }
 }

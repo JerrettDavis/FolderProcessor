@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+
 namespace FolderProcessor.Abstractions.Stores;
 
+[PublicAPI]
 public interface IStore<in TKey, TType>
     where TKey : notnull
     where TType : class

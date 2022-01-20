@@ -1,7 +1,9 @@
 using FolderProcessor.Abstractions.Files;
+using JetBrains.Annotations;
 
 namespace FolderProcessor.Abstractions.Providers;
 
+[PublicAPI]
 public interface IWorkingFileProvider
 {
     Task AddAsync(IFileRecord fileRecord, CancellationToken cancellationToken);
