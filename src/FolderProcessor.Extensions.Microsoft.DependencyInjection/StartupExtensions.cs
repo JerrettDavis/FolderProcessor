@@ -1,14 +1,10 @@
 ﻿using System.IO.Abstractions;
 using System.Reflection;
 using FolderProcessor.Abstractions.Files;
-using FolderProcessor.Abstractions.Monitoring.Filters;
-using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Monitoring;
 using FolderProcessor.Files;
 using FolderProcessor.Monitoring;
-using FolderProcessor.Monitoring.Filters;
-using FolderProcessor.Providers;
 using FolderProcessor.Stores;
 using JetBrains.Annotations;
 using MediatR;
@@ -60,30 +56,4 @@ public static class StartupExtensions
         this IServiceCollection services,
         IConfiguration configuration) => 
         AddFolderProcessor(services, configuration, Array.Empty<Assembly>());
-
-    public static IServiceCollection AddFileTypeFilter(
-        this IServiceCollection services,
-        params string[] fileExtensions) =>
-        services.AddTransient<IFileFilter>(s =>
-            new FileTypeFileFilter(
-                s.GetService<IFileSystem>()!, 
-                fileExtensions));
-
-    public static IServiceCollection UseStaticWorkingFile(
-        this IServiceCollection services,
-        string folder) =>
-        services.AddTransient<IWorkingDirectoryProvider>(s =>
-            new StaticWorkingDirectoryProvider(folder, s.GetService<IFileSystem>()!));
-    
-    public static IServiceCollection UseStaticCompletedFile(
-        this IServiceCollection services,
-        string folder) =>
-        services.AddTransient<ICompletedDirectoryProvider>(s =>
-            new StaticCompletedDirectoryProvider(folder, s.GetService<IFileSystem>()!));
-
-    public static IServiceCollection UseStaticErroredFile(
-        this IServiceCollection services,
-        string folder) =>
-        services.AddTransient<IErroredDirectoryProvider>(s =>
-            new StaticErroredDirectoryProvider(folder, s.GetService<IFileSystem>()!));
 }

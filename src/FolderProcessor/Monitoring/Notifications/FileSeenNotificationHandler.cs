@@ -5,6 +5,10 @@ using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Monitoring.Notifications;
 
+/// <summary>
+/// This handler responses to a <see cref="FileSeenNotification"/>. Currently,
+/// it just logs the file.
+/// </summary>
 [UsedImplicitly]
 public class FileSeenNotificationHandler : 
     INotificationHandler<FileSeenNotification>

@@ -1,5 +1,8 @@
 namespace FolderProcessor.Common.Exceptions;
 
+/// <summary>
+/// Thrown when there's an error fetching an item from a store.
+/// </summary>
 public class GetFromStoreException : Exception
 {
     public GetFromStoreException(object key) : 

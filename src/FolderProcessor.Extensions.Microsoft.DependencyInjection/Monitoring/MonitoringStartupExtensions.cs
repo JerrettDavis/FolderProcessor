@@ -103,6 +103,13 @@ public static class MonitoringStartupExtensions
         return services.AddSingleton<IFileStream>(watcher);
     }
 
+    /// <summary>
+    /// Creates the specified type of <see cref="WatcherSettings"/> and ensures
+    /// the directory specified within it exists.
+    /// </summary>
+    /// <param name="options">The function to build the settings</param>
+    /// <typeparam name="T">The resulting type of the settings</typeparam>
+    /// <returns>The newly created settings instance</returns>
     private static T PrepareWatcherEnvironment<T>(
         Func<T,T> options) where T : WatcherSettings
     {

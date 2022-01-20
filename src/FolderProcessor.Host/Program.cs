@@ -1,4 +1,5 @@
 using FolderProcessor.Extensions.Microsoft.DependencyInjection;
+using FolderProcessor.Extensions.Microsoft.DependencyInjection.Files;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Monitoring;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Processing;
 using FolderProcessor.Host;

@@ -24,9 +24,4 @@
       <ProjectReference Include="..\FolderProcessor.Abstractions\FolderProcessor.Abstractions.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Common" />
-      <Folder Include="Processing\Configuration" />
-    </ItemGroup>
-
 </Project>

@@ -17,12 +17,8 @@ public class Worker : BackgroundService
     {
         await using var services = _serviceProvider.CreateAsyncScope();
         var watcher = services.ServiceProvider.GetService<StreamedFolderWatcher>()!;
-
+        
+        _logger.LogInformation("Firing up the folder watcher..");
         await watcher.StartAsync(stoppingToken);
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Worker running at: {Time}", DateTimeOffset.Now);
-            await Task.Delay(1000, stoppingToken);
-        }
     }
 }

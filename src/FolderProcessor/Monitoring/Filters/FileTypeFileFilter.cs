@@ -26,6 +26,12 @@ public class FileTypeFileFilter : IFileFilter
         _fileSystem = fileSystem;
     }
 
+    /// <summary>
+    /// Returns whether the input matches one of the configured file extensions.
+    /// </summary>
+    /// <param name="input">The input to check</param>
+    /// <param name="cancellationToken">A token to cancel the task</param>
+    /// <returns>True if the file has the correct extension.</returns>
     public Task<bool> IsValid(
         string input,
         CancellationToken cancellationToken = default)

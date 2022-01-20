@@ -2,6 +2,9 @@ using JetBrains.Annotations;
 
 namespace FolderProcessor.Abstractions.Providers;
 
+/// <summary>
+/// Provides file paths for given directories
+/// </summary>
 [PublicAPI]
 public interface IDirectoryProvider
 {

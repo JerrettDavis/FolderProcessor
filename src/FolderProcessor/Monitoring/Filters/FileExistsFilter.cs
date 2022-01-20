@@ -21,6 +21,12 @@ public class FileExistsFilter : IFileFilter
         _logger = logger;
     }
 
+    /// <summary>
+    /// Returns whether a file exists at the given path.
+    /// </summary>
+    /// <param name="input">The file path to check.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns>True if the file is found. False otherwise.</returns>
     public Task<bool> IsValid(
         string input,
         CancellationToken cancellationToken = default)
