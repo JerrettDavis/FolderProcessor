@@ -2,7 +2,6 @@ using FolderProcessor.Extensions.Microsoft.DependencyInjection;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Files;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Monitoring;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Processing;
-using FolderProcessor.Host;
 using FolderProcessor.Host.Processors;
 using FolderProcessor.Models.Monitoring.Configuration;
 
@@ -23,8 +22,7 @@ var host = Host.CreateDefaultBuilder(args)
             .UseStaticWorkingFile("Working")
             .UseStaticCompletedFile("Completed")
             .UseStaticErroredFile("Errored")
-            .AddProcessor<LogFileContentProcessor>()
-            .AddHostedService<Worker>();
+            .AddProcessor<LogFileContentProcessor>();
     })
     .Build();
 

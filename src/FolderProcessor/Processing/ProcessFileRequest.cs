@@ -45,7 +45,7 @@ public class ProcessFileRequestHandler : IRequestHandler<ProcessFileRequest>
             .WhereAwaitWithCancellation(async (p, t) =>
                 await p.AppliesAsync(file, t))
             .ForEachAwaitWithCancellationAsync(async (p, t) =>
-                    await p.Process(file, t),
+                    await p.ProcessAsync(file, t),
                 cancellationToken)
             .ConfigureAwait(false);
 

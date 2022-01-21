@@ -23,7 +23,7 @@ public class LogFileContentProcessor : IProcessor
         _fileSystem = fileSystem;
     }
 
-    public async Task Process(
+    public async Task ProcessAsync(
         IFileRecord fileRecord, 
         CancellationToken cancellationToken = default)
     {

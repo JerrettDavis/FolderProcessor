@@ -17,7 +17,7 @@ public interface IProcessor
     /// A token that can be used to request cancellation of the asynchronous operation.
     /// </param>
     /// <returns></returns>
-    Task Process(
+    Task ProcessAsync(
         IFileRecord fileRecord,
         CancellationToken cancellationToken = default);
     

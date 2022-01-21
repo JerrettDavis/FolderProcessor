@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using FolderProcessor.Abstractions;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Abstractions.Monitoring.Streams;
@@ -14,7 +15,9 @@ namespace FolderProcessor.Monitoring;
 /// All the streams are combined and each yielded file publishes a
 /// <see cref="FileNeedsProcessingNotification"/>, which can be consumed by processors.
 /// </summary>
-public class StreamedFolderWatcher : IDisposable
+public class StreamedFolderWatcher : 
+    IWorkerControl, 
+    IDisposable
 {
     private readonly ConcurrentBag<Func<IAsyncEnumerable<IFileRecord>>> _streams;
     private CancellationTokenSource? _cancellationTokenSource;
@@ -100,6 +103,16 @@ public class StreamedFolderWatcher : IDisposable
         {
             _logger.LogInformation("Folder watcher has been shut down");   
         }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (!cancellationToken.IsCancellationRequested)
+            return Task.CompletedTask;
+
+        _cancellationTokenSource?.Cancel();
+        
+        return Task.CompletedTask;
     }
 
     public void Dispose()
