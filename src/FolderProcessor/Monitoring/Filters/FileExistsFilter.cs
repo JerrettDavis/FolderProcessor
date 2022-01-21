@@ -21,10 +21,27 @@ public class FileExistsFilter : IFileFilter
         _logger = logger;
     }
 
+    /// <summary>
+    /// Returns whether a file exists at the given path.
+    /// </summary>
+    /// <param name="input">The file path to check.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns>True if the file is found. False otherwise.</returns>
     public Task<bool> IsValid(
         string input,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(_fileSystem.File.Exists(input));
+        try
+        {
+            return Task.FromResult(_fileSystem.File.Exists(input));
+        }
+        catch (IOException ex)
+        {
+            _logger.LogError(ex, 
+                "Encountered an error while trying to check if {Path} exists...", 
+                input);
+            
+            return Task.FromResult(false);
+        }
     }
 }

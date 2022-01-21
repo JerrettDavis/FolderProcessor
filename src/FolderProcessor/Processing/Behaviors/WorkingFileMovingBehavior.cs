@@ -4,13 +4,20 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using JetBrains.Annotations;
-using MediatR.Pipeline;
+using MediatR;
 
-namespace FolderProcessor.Processing.PreProcessing;
+namespace FolderProcessor.Processing.Behaviors;
 
+/// <summary>
+/// This behaviors moves files to a dedicated working directory before running
+/// the process file request.
+/// </summary>
+/// <typeparam name="TRequest">The type of the request</typeparam>
+/// <typeparam name="TResponse">the type of the response</typeparam>
 [UsedImplicitly]
-public class WorkingFileMovingBehavior<TRequest> :
-    IRequestPreProcessor<TRequest> where TRequest : IProcessFileRequest
+public class WorkingFileMovingBehavior<TRequest, TResponse> : 
+    IPipelineBehavior<TRequest, TResponse> 
+    where TRequest : IRequest<TResponse>, IProcessFileRequest
 {
     private readonly IWorkingFileStore _workingFileStore;
     private readonly ISeenFileStore _seenFileStore;
@@ -29,9 +36,10 @@ public class WorkingFileMovingBehavior<TRequest> :
         _fileMover = fileMover;
     }
 
-    public async Task Process(
-        TRequest request,
-        CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(
+        TRequest request, 
+        CancellationToken cancellationToken, 
+        RequestHandlerDelegate<TResponse> next)
     {
         // Get the file and where to send it.
         var file = new FileRecord(await _seenFileStore
@@ -49,5 +57,7 @@ public class WorkingFileMovingBehavior<TRequest> :
             _seenFileStore.RemoveAsync(
                 file.Id,
                 cancellationToken));
+
+        return await next();
     }
 }

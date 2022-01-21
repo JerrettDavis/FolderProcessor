@@ -1,8 +1,11 @@
+using JetBrains.Annotations;
+
 namespace FolderProcessor.Abstractions.Monitoring.Filters;
 
 /// <summary>
 /// Defines a filter used for determining if a file is valid.
 /// </summary>
+[PublicAPI]
 public interface IFileFilter
 {
     /// <summary>

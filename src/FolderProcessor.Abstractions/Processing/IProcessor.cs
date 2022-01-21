@@ -1,10 +1,12 @@
 using FolderProcessor.Abstractions.Files;
+using JetBrains.Annotations;
 
 namespace FolderProcessor.Abstractions.Processing;
 
 /// <summary>
 /// Defines a processor that performs some action on or with a file.
 /// </summary>
+[PublicAPI]
 public interface IProcessor
 {
     /// <summary>
@@ -15,7 +17,7 @@ public interface IProcessor
     /// A token that can be used to request cancellation of the asynchronous operation.
     /// </param>
     /// <returns></returns>
-    Task Process(
+    Task ProcessAsync(
         IFileRecord fileRecord,
         CancellationToken cancellationToken = default);
     

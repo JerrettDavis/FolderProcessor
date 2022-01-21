@@ -2,10 +2,20 @@ using JetBrains.Annotations;
 
 namespace FolderProcessor.Models.Monitoring.Configuration;
 
+/// <summary>
+/// The generic settings used to configure watchers
+/// </summary>
 [PublicAPI]
 public class WatcherSettings
 {
+    /// <summary>
+    /// The type of watcher to configure
+    /// </summary>
     public WatcherType Type { get; set; }
+    
+    /// <summary>
+    /// The folder to monitor
+    /// </summary>
     public string Folder { get; set; } = null!;
 
     public WatcherSettings()

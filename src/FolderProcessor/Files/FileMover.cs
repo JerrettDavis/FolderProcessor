@@ -5,6 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Files;
 
+/// <summary>
+/// Moves files from one location to another, using a <see cref="IDirectoryProvider"/>
+/// </summary>
 public class FileMover : IFileMover
 {
     private readonly ILogger<FileMover> _logger;

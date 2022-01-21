@@ -1,3 +1,4 @@
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,26 +10,26 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Processing;
-using FolderProcessor.Processing.PostProcessing;
+using FolderProcessor.Processing.Behaviors;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using MediatR;
 using Moq;
 using Xunit;
 
-namespace FolderProcessor.UnitTests.Processing.PostProcessing;
+namespace FolderProcessor.UnitTests.Processing.Behaviors;
 
-public class CompletedFileMovingBehaviorTests
+public class WorkingFileMovingBehaviorTests
 {
     [Theory, AutoMoqDataWithFileSystem]
     public async Task ShouldMoveFileToNewFolder(
-        [Frozen] ICompletedFileStore completedFileStore,
+        [Frozen] ISeenFileStore seenFileStore,
         [Frozen] IWorkingFileStore workingFileStore,
         [Frozen] Mock<IFileMover> fileMover,
         FileRecord record,
-        CompletedFileMovingBehavior<IProcessFileRequest, Unit> behavior) 
+        WorkingFileMovingBehavior<IProcessFileRequest, Unit> behavior) 
     {
         // Arrange
-        await workingFileStore.AddAsync(record.Id, record);
+        await seenFileStore.AddAsync(record.Id, record);
         
         var request = new ProcessFileRequest {FileId = record.Id};
         var newName = Guid.NewGuid().ToString();
@@ -40,11 +41,15 @@ public class CompletedFileMovingBehaviorTests
             .ReturnsAsync(newName);
 
         // Act
-        await behavior.Process(request, Unit.Value, CancellationToken.None);
-        var newFile = await completedFileStore.GetAsync(record.Id, CancellationToken.None);
+        await behavior.Handle(request, CancellationToken.None, () => Unit.Task);
+        var newFile = await workingFileStore.GetAsync(record.Id, CancellationToken.None);
         
         // Assert
-        (await completedFileStore.ContainsAsync(record.Id)).Should().BeTrue();
+        (await workingFileStore.ContainsAsync(record.Id)).Should().BeTrue();
         newFile.Path.Should().Be(newName);
     }
+}
+
+public class WorkingFileMovingBehavior<T>
+{
 }

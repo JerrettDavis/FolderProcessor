@@ -3,7 +3,7 @@ using FolderProcessor.Abstractions.Files;
 namespace FolderProcessor.Abstractions.Stores;
 
 /// <summary>
-/// Maintains a thread-sfe collection of all files seen by various watchers
+/// A store of all files seen in a directory
 /// </summary>
 public interface ISeenFileStore : IStore<Guid, IFileRecord>
 {

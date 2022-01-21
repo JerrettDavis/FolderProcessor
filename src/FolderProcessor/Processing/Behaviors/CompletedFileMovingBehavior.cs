@@ -4,13 +4,20 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Processing.Notifications;
+using JetBrains.Annotations;
 using MediatR;
-using MediatR.Pipeline;
 
-namespace FolderProcessor.Processing.PostProcessing;
+namespace FolderProcessor.Processing.Behaviors;
 
+/// <summary>
+/// This behavior moves files to the completed directory once they have completed
+/// successfully.
+/// </summary>
+/// <typeparam name="TRequest">The type of the request</typeparam>
+/// <typeparam name="TResponse">The type of the response</typeparam>
+[UsedImplicitly]
 public class CompletedFileMovingBehavior<TRequest, TResponse> : 
-    IRequestPostProcessor<TRequest, TResponse> 
+    IPipelineBehavior<TRequest, TResponse> 
     where TRequest : IRequest<TResponse>, IProcessFileRequest
 {
     private readonly IWorkingFileStore _workingStore;
@@ -33,11 +40,13 @@ public class CompletedFileMovingBehavior<TRequest, TResponse> :
         _publisher = publisher;
     }
 
-    public async Task Process(
+    public async Task<TResponse> Handle(
         TRequest request, 
-        TResponse response, 
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, 
+        RequestHandlerDelegate<TResponse> next)
     {
+        var result = await next();
+        
         // Get the file and where to send it.
         var file = new FileRecord(await _workingStore
             .GetAsync(request.FileId, cancellationToken));
@@ -58,5 +67,7 @@ public class CompletedFileMovingBehavior<TRequest, TResponse> :
         await _publisher.Publish(
             new CompletedFileMovedNotification {FileRecord = newFileLocation},
             cancellationToken);
+
+        return result;
     }
 }

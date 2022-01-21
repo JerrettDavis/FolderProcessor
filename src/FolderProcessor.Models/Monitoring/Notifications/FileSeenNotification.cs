@@ -12,5 +12,8 @@ namespace FolderProcessor.Models.Monitoring.Notifications;
 [PublicAPI]
 public class FileSeenNotification : INotification
 {
+    /// <summary>
+    /// Information about the seen file.
+    /// </summary>
     public IFileRecord FileInfo { get; init; } = null!;
 }

@@ -4,11 +4,19 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Processing.Notifications;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Processing.Behaviors;
 
+/// <summary>
+/// This behavior monitors the process request for any errors. If an unhandled
+/// exception occurs, the file is moved to the error directory.
+/// </summary>
+/// <typeparam name="TRequest">The type of the request</typeparam>
+/// <typeparam name="TResponse">The type of the response</typeparam>
+[UsedImplicitly]
 public class ErroredFileMovingBehavior<TRequest, TResponse> : 
     IPipelineBehavior<TRequest, TResponse> 
     where TRequest : IRequest<TResponse>, IProcessFileRequest

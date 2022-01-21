@@ -20,4 +20,28 @@
       <ProjectReference Include="..\FolderProcessor.Extensions.Microsoft.DependencyInjection\FolderProcessor.Extensions.Microsoft.DependencyInjection.csproj" />
       <ProjectReference Include="..\FolderProcessor\FolderProcessor.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Completed\**" />
+      <Compile Remove="Data\**" />
+      <Compile Remove="Working\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Completed\**" />
+      <EmbeddedResource Remove="Data\**" />
+      <EmbeddedResource Remove="Working\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Completed\**" />
+      <None Remove="Data\**" />
+      <None Remove="Working\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="Completed\**" />
+      <Content Remove="Data\**" />
+      <Content Remove="Working\**" />
+    </ItemGroup>
 </Project>

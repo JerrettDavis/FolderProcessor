@@ -18,6 +18,14 @@ public interface IFileRecord
     /// </summary>
     string Path { get; init; }
 
+    /// <summary>
+    /// The last datetime the record touched in some fashion by the internal
+    /// mechanisms of the library.
+    /// </summary>
     DateTimeOffset Touched { get; }
+    
+    /// <summary>
+    /// The original filename of the file.
+    /// </summary>
     string FileName { get; init; }
 }

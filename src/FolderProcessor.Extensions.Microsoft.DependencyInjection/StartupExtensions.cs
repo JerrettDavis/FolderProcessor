@@ -1,14 +1,10 @@
 ﻿using System.IO.Abstractions;
 using System.Reflection;
 using FolderProcessor.Abstractions.Files;
-using FolderProcessor.Abstractions.Monitoring.Filters;
-using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Monitoring;
 using FolderProcessor.Files;
 using FolderProcessor.Monitoring;
-using FolderProcessor.Monitoring.Filters;
-using FolderProcessor.Providers;
 using FolderProcessor.Stores;
 using JetBrains.Annotations;
 using MediatR;
@@ -27,17 +23,22 @@ public static class StartupExtensions
     /// Adds the necessary services to run FolderProcessor
     /// </summary>
     /// <param name="services">The application's service collection.</param>
-    /// <param name="configuration">The applications configuration</param>
     /// <param name="assemblies">The assemblies containing mediatr behaviors and handlers</param>
     /// <returns>The application service collection, with the newly added Folder Processor</returns>
     public static IServiceCollection AddFolderProcessor(
         this IServiceCollection services,
-        IConfiguration configuration,
         params Assembly[] assemblies)
     {
         var ass = assemblies
             .Union(new[] {typeof(StreamedFolderWatcher).Assembly})
             .ToArray();
+
+        FolderProcessorHostedService HostedServiceFactory(IServiceProvider provider)
+        {
+            var watcher = provider.GetRequiredService<StreamedFolderWatcher>();
+            return new FolderProcessorHostedService(watcher, false);
+        }
+
         return services
             .AddMediatR(ass)
             .AddSingleton<IFileSystem, FileSystem>()
@@ -47,6 +48,23 @@ public static class StartupExtensions
             .AddSingleton<IErroredFileStore, ErroredFileStore>()
             .AddSingleton<IFileMover, FileMover>()
             .AddSingleton<StreamedFolderWatcher>()
+            .AddHostedService(HostedServiceFactory);
+    }
+    
+    /// <summary>
+    /// Adds the necessary services to run FolderProcessor
+    /// </summary>
+    /// <param name="services">The application's service collection.</param>
+    /// <param name="configuration">The applications configuration</param>
+    /// <param name="assemblies">The assemblies containing mediatr behaviors and handlers</param>
+    /// <returns>The application service collection, with the newly added Folder Processor</returns>
+    public static IServiceCollection AddFolderProcessor(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        params Assembly[] assemblies)
+    {
+        return services
+            .AddFolderProcessor(assemblies)
             .AddFolderWatchers(configuration);
     }
 
@@ -60,30 +78,13 @@ public static class StartupExtensions
         this IServiceCollection services,
         IConfiguration configuration) => 
         AddFolderProcessor(services, configuration, Array.Empty<Assembly>());
-
-    public static IServiceCollection AddFileTypeFilter(
-        this IServiceCollection services,
-        params string[] fileExtensions) =>
-        services.AddTransient<IFileFilter>(s =>
-            new FileTypeFileFilter(
-                s.GetService<IFileSystem>()!, 
-                fileExtensions));
-
-    public static IServiceCollection UseStaticWorkingFile(
-        this IServiceCollection services,
-        string folder) =>
-        services.AddTransient<IWorkingDirectoryProvider>(s =>
-            new StaticWorkingDirectoryProvider(folder, s.GetService<IFileSystem>()!));
     
-    public static IServiceCollection UseStaticCompletedFile(
-        this IServiceCollection services,
-        string folder) =>
-        services.AddTransient<ICompletedDirectoryProvider>(s =>
-            new StaticCompletedDirectoryProvider(folder, s.GetService<IFileSystem>()!));
-
-    public static IServiceCollection UseStaticErroredFile(
-        this IServiceCollection services,
-        string folder) =>
-        services.AddTransient<IErroredDirectoryProvider>(s =>
-            new StaticErroredDirectoryProvider(folder, s.GetService<IFileSystem>()!));
+    /// <summary>
+    /// Adds the necessary services to run FolderProcessor
+    /// </summary>
+    /// <param name="services">The application's service collection.</param>
+    /// <returns>The application service collection, with the newly added Folder Processor</returns>
+    public static IServiceCollection AddFolderProcessor(
+        this IServiceCollection services) => 
+        AddFolderProcessor(services, Array.Empty<Assembly>());
 }

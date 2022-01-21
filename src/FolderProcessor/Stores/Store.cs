@@ -4,6 +4,11 @@ using FolderProcessor.Common.Exceptions;
 
 namespace FolderProcessor.Stores;
 
+/// <summary>
+/// Provides a base thread-safe store for storing generic objects.
+/// </summary>
+/// <typeparam name="TKey">The type of the key.</typeparam>
+/// <typeparam name="TType">The type of the object being stored.</typeparam>
 public abstract class Store<TKey, TType> : IStore<TKey, TType>
     where TKey : notnull
     where TType : class

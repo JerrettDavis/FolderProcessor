@@ -1,5 +1,13 @@
+using JetBrains.Annotations;
+
 namespace FolderProcessor.Abstractions.Stores;
 
+/// <summary>
+/// A contract for a generic object store
+/// </summary>
+/// <typeparam name="TKey">The type of key of the item to store</typeparam>
+/// <typeparam name="TType">The type of the time to store</typeparam>
+[PublicAPI]
 public interface IStore<in TKey, TType>
     where TKey : notnull
     where TType : class
