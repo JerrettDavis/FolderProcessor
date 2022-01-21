@@ -26,6 +26,23 @@ namespace FolderProcessor.Hosting.Processors
             _fileSystem = fileSystem;
         }
 
+#if NETFRAMEWORK
+        public Task ProcessAsync(
+            IFileRecord fileRecord, 
+            CancellationToken cancellationToken = default)
+        {
+            // This is DANGEROUS. Processors are ran concurrently, and this could cause
+            // the file to get locked if multiple processors are attempting to access
+            // it simultaneously.
+            var content = _fileSystem.File
+                .ReadAllText(fileRecord.Path);
+        
+            _logger.LogInformation("File {File}. Content '{Content}'", fileRecord, content);
+            
+            return Task.CompletedTask;
+        }
+#endif
+#if NET6_0
         public async Task ProcessAsync(
             IFileRecord fileRecord, 
             CancellationToken cancellationToken = default)
@@ -38,6 +55,8 @@ namespace FolderProcessor.Hosting.Processors
         
             _logger.LogInformation("File {File}. Content '{Content}'", fileRecord, content);
         }
+#endif
+
     
         public Task<bool> AppliesAsync(
             IFileRecord fileRecord, 

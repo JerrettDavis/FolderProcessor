@@ -14,7 +14,6 @@ using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Models.Files;
 using MediatR;
 using Moq;
-using Xunit;
 
 namespace FolderProcessor.UnitTests.Setup.Customizations
 {
@@ -23,7 +22,7 @@ namespace FolderProcessor.UnitTests.Setup.Customizations
         public void Customize(IFixture fixture)
         {
             fixture.Register<IFileStream>(MockFileStream.Create);
-            fixture.Register<IStreamRequestHandler<IFileStream, IFileRecord>>(MockFileStreamHandler.Create);
+            fixture.Register<IRequestHandler<IFileStream>>(MockFileStreamHandler.Create);
             var filter = fixture.Freeze<Mock<IFileFilter>>();
 
             filter.Setup(f => f.IsValid(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -31,21 +30,21 @@ namespace FolderProcessor.UnitTests.Setup.Customizations
             
             var mediatrMock = fixture.Freeze<Mock<IMediator>>();
             
-            mediatrMock.Setup(m => m.CreateStream(It.IsAny<MockFileStream>(), It.IsAny<CancellationToken>()))
-                .Callback((IStreamRequest<IFileRecord> s, CancellationToken t) =>
-                {
-                    var c = s as MockFileStream;
-                    Assert.NotNull(c);
-                    Task.Run(async () =>
-                    {
-                        await Task.Delay(100, t);
-                        var tasks = MockFiles.Files
-                            .ToList()
-                            .Select(e => MockFileStreamHandler.AddFile(c.Folder, e));
-                        await Task.WhenAll(tasks);
-                    }, t);
-                })
-                .Returns((IFileStream s, CancellationToken t) => fixture.Freeze<MockFileStreamHandler>().Handle(s, t));
+            // mediatrMock.Setup(m => m.CreateStream(It.IsAny<MockFileStream>(), It.IsAny<CancellationToken>()))
+            //     .Callback((IStreamRequest<IFileRecord> s, CancellationToken t) =>
+            //     {
+            //         var c = s as MockFileStream;
+            //         Assert.NotNull(c);
+            //         Task.Run(async () =>
+            //         {
+            //             await Task.Delay(100, t);
+            //             var tasks = MockFiles.Files
+            //                 .ToList()
+            //                 .Select(e => MockFileStreamHandler.AddFile(c.Folder, e));
+            //             await Task.WhenAll(tasks);
+            //         }, t);
+            //     })
+            //     .Returns((IFileStream s, CancellationToken t) => fixture.Freeze<MockFileStreamHandler>().Handle(s, t));
             
             fixture.Register(() => mediatrMock.Object);
         }
@@ -81,7 +80,7 @@ namespace FolderProcessor.UnitTests.Setup.Customizations
     }
 
     public class MockFileStreamHandler : 
-        IStreamRequestHandler<IFileStream, IFileRecord>
+        IRequestHandler<IFileStream>
     {
         private static readonly MockFileStreamHandler Global = new MockFileStreamHandler();
         private static readonly ConcurrentDictionary<string, Channel<IFileRecord>> MockHandlers = 
@@ -94,16 +93,15 @@ namespace FolderProcessor.UnitTests.Setup.Customizations
                 await channel.Writer.WriteAsync(record, CancellationToken.None);
         }
 
-        public IAsyncEnumerable<IFileRecord> Handle(
+        public Task<Unit> Handle(
             IFileStream request, 
             CancellationToken cancellationToken)
         {
-            var channel = MockHandlers.GetOrAdd(request.Folder, _ => 
-                Channel.CreateUnbounded<IFileRecord>());
-            
-            cancellationToken.Register(() => channel.Writer.Complete());
+            var tcs = new TaskCompletionSource<Unit>();
+            cancellationToken.Register(s => 
+                ((TaskCompletionSource<Unit>)s).SetResult(Unit.Value), tcs);
 
-            return channel.Reader.ReadAllAsync(CancellationToken.None);
+            return tcs.Task;
         }
 
         public static MockFileStreamHandler Create()

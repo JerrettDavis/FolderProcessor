@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
-using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
@@ -38,7 +35,7 @@ public class PolledFileStream : IFileStream
 /// </summary>
 [UsedImplicitly]
 public class PolledFileStreamHandler : 
-    IStreamRequestHandler<PolledFileStream, IFileRecord>
+    IRequestHandler<PolledFileStream>
 {
     private readonly ISeenFileStore _seenFileStore;
     private readonly IPublisher _publisher;
@@ -57,28 +54,21 @@ public class PolledFileStreamHandler :
         _fileSystem = fileSystem;
     }
 
-    public IAsyncEnumerable<IFileRecord> Handle(
+    public async Task<Unit> Handle(
         PolledFileStream request, 
         CancellationToken cancellationToken)
     {
-        var channel = Channel.CreateUnbounded<FileRecord>(); 
-        // Defer the poll to a background worker so our channel can return.
-        Task.Run(async () => 
-            await FolderPoller(
-                request.Folder, 
-                request.Interval, 
-                channel, 
-                cancellationToken),
-            CancellationToken.None); // Poller is self-killing
-        cancellationToken.Register(() => channel.Writer.Complete());
+        await FolderPoller(
+            request.Folder,
+            request.Interval,
+            cancellationToken);
         
-        return channel.Reader.ReadAllAsync(CancellationToken.None);
+        return Unit.Value;
     }
     
     private async Task FolderPoller(
         string folder,
         TimeSpan interval,
-        Channel<FileRecord, FileRecord> channel,
         CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
@@ -90,7 +80,7 @@ public class PolledFileStreamHandler :
                         .Where(f => !_seenFileStore.ContainsPath(f))
                         .AsParallel()
                         .Select(async f =>
-                            await FileSeen(f, channel, cancellationToken))
+                            await FileSeen(f, cancellationToken))
                         .ToList());
 
                 _logger.LogInformation("Polled {Directory} at: {Time}",
@@ -121,8 +111,7 @@ public class PolledFileStreamHandler :
     }
     
     private async Task FileSeen(
-        string path, 
-        Channel<FileRecord, FileRecord> channel,
+        string path,
         CancellationToken cancellationToken)
     {
         var fileName = _fileSystem.Path.GetFileName(path);
@@ -133,9 +122,6 @@ public class PolledFileStreamHandler :
         await _publisher.Publish(
             new FileSeenNotification {FileInfo = info}, 
             cancellationToken).ConfigureAwait(false);
-
-        await channel.Writer.WriteAsync(info, cancellationToken)
-            .ConfigureAwait(false);
     }
 }    
 }

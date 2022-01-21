@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
         <Nullable>disable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>dotnet-FolderProcessor.Host-E07729CC-A639-4D92-A2AD-65ABDE678309</UserSecretsId>
@@ -13,10 +12,11 @@
         <AssemblyName>FolderProcessor.Hosting</AssemblyName>
         <RootNamespace>FolderProcessor.Hosting</RootNamespace>
         <ImplicitUsings>disable</ImplicitUsings>
+        <TargetFrameworks>net471;net472;net48;net6.0</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MediatR" Version="10.0.1" />
+        <PackageReference Include="MediatR" Version="9.0.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     </ItemGroup>
 

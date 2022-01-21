@@ -5,8 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FolderProcessor.Abstractions;
-using FolderProcessor.Abstractions.Files;
-using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Models.Processing.Notifications;
 using MediatR;
@@ -16,33 +14,25 @@ namespace FolderProcessor.Monitoring
 {
 /// <summary>
 /// Receives a collection of <see cref="IFileStream"/> and uses <see cref="IMediator"/>
-/// to setup a <see cref="IStreamRequestHandler{TRequest,TResponse}"/> for each.
-/// All the streams are combined and each yielded file publishes a
-/// <see cref="FileNeedsProcessingNotification"/>, which can be consumed by processors.
+/// to setup a handler for each.
 /// </summary>
 public class StreamedFolderWatcher : 
     IWorkerControl, 
     IDisposable
 {
-    private readonly ConcurrentBag<Func<IAsyncEnumerable<IFileRecord>>> _streams;
+    private readonly ConcurrentBag<Func<Task<Unit>>> _streams;
     private CancellationTokenSource _cancellationTokenSource;
     private readonly IMediator _mediator;
-    private readonly IPublisher _publisher;
-    private readonly IEnumerable<IFileFilter> _filters;
     private readonly ILogger<StreamedFolderWatcher> _logger;
 
     public StreamedFolderWatcher(
         IMediator mediator,
         IEnumerable<IFileStream> fileStreams,
-        ILogger<StreamedFolderWatcher> logger,
-        IPublisher publisher, 
-        IEnumerable<IFileFilter> filters)
+        ILogger<StreamedFolderWatcher> logger)
     {
         _mediator = mediator;
         _logger = logger;
-        _publisher = publisher;
-        _filters = filters;
-        _streams = new ConcurrentBag<Func<IAsyncEnumerable<IFileRecord>>>();
+        _streams = new ConcurrentBag<Func<Task<Unit>>>();
         _cancellationTokenSource = new CancellationTokenSource();
 
         fileStreams.ToList()
@@ -52,9 +42,9 @@ public class StreamedFolderWatcher :
     private void AddStream<T>(
         T request,
         CancellationToken cancellationToken)
-        where T : IStreamRequest<IFileRecord>
+        where T : IFileStream
     {
-        _streams.Add(() => _mediator.CreateStream(request, cancellationToken));
+        _streams.Add(() => _mediator.Send(request, cancellationToken));
     }
 
     /// <summary>
@@ -70,30 +60,9 @@ public class StreamedFolderWatcher :
         
         try
         {
-            /* There's two Merge methods in AsyncEnumerableEx. Only the one that
-             * accepts an array supports concurrency. We need concurrency. */
-            // Streams are lazily created at the beginning of the run.
-            var streams = await Task.WhenAll(_streams.Select(s =>
+            await Task.WhenAll(_streams.Select(s =>
                     Task.Run(s, _cancellationTokenSource.Token))
                 .ToArray());
-            var merged = AsyncEnumerableEx.Merge(streams)
-                .WithCancellation(_cancellationTokenSource.Token);
-            var enumerator = merged.GetAsyncEnumerator();
-            while (await enumerator.MoveNextAsync())
-            {
-                var file = enumerator.Current;
-                var satisfiedFilters = await _filters
-                    .ToAsyncEnumerable()
-                    .AllAwaitAsync(async f => 
-                            await f.IsValid(file.Path, cancellationToken),
-                        cancellationToken);
-                if (!satisfiedFilters) continue;
-
-                _logger.LogDebug("Incoming {File}", file);
-                await _publisher.Publish(
-                    new FileNeedsProcessingNotification {File = file},
-                    cancellationToken);
-            }
         }
         catch (AggregateException ae)
         {

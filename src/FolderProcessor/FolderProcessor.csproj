@@ -4,7 +4,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <TargetFramework>net6.0</TargetFramework>
         <PackageVersion>0.0.1</PackageVersion>
         <Title>FolderProcessor</Title>
         <Authors>Jerrett Davis</Authors>
@@ -15,10 +14,11 @@
         <RepositoryType>git</RepositoryType>
         <LangVersion>7.3</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
+        <TargetFrameworks>net471;net472;net48;net6.0;netstandard2.0;netstandard2.1</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="MediatR" Version="10.0.1" />
+      <PackageReference Include="MediatR" Version="9.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
       <PackageReference Include="Polly" Version="7.2.2" />
       <PackageReference Include="System.Interactive.Async" Version="5.1.0" />

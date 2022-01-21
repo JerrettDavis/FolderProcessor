@@ -47,8 +47,7 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams
             // Start watching
             // ReSharper disable once AccessToDisposedClosure
             var handleTask = handler
-                .Handle(request, cancellationTokenSource.Token)
-                .ToListAsync(CancellationToken.None);
+                .Handle(request, cancellationTokenSource.Token);
             
             // Run a background task to create some files
             await Task.Run(() =>
@@ -66,8 +65,7 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams
             var result = await handleTask;
 
             // Assert
-            result.Should().NotBeNullOrEmpty();
-            result.Should().HaveCount(count);
+            result.Should().NotBeNull();
             Mock.Get(publisher).Verify(p => 
                 p.Publish(It.IsAny<FileSeenNotification>(), It.IsAny<CancellationToken>()),
                 Times.Exactly(count));
@@ -90,8 +88,7 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams
             // Act
             // Start watching
             var handle = handler
-                .Handle(request, cancellationTokenSource.Token)
-                .ToListAsync(CancellationToken.None);
+                .Handle(request, cancellationTokenSource.Token);
             
             fileSystem.FileSystemWatcherFactory.NewFileEvent(Path.Combine(root, @"Data",fileName));
             

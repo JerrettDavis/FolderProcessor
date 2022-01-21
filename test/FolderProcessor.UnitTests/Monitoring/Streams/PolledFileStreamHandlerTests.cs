@@ -49,8 +49,7 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams
 
             // Act
             // Start watching
-            var handle = handler.Handle(request, cancellationTokenSource.Token)
-                .ToListAsync(CancellationToken.None);
+            var handle = handler.Handle(request, cancellationTokenSource.Token);
             // Run a task to create some files and cancel after some time
             await Task.Run(() =>
                 {
@@ -67,8 +66,7 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams
             var result = await handle;
 
             // Assert
-            result.Should().NotBeNullOrEmpty();
-            result.Should().HaveCount(count);
+            result.Should().NotBeNull();
             Mock.Get(publisher).Verify(p =>
                     p.Publish(It.IsAny<FileSeenNotification>(), It.IsAny<CancellationToken>()),
                 Times.Exactly(count));
@@ -95,8 +93,7 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams
             // Act
             // Start watching
             var handle = handler
-                .Handle(request, cancellationTokenSource.Token)
-                .ToListAsync(CancellationToken.None);
+                .Handle(request, cancellationTokenSource.Token);
 
             // Cancel monitoring
             cancellationTokenSource.CancelAfter(1000);

@@ -8,7 +8,7 @@ namespace FolderProcessor.Abstractions.Monitoring.Streams
     /// Used to create new File Streams for the application to consume. 
     /// </summary>
     [PublicAPI]
-    public interface IFileStream : IStreamRequest<IFileRecord>
+    public interface IFileStream : IRequest
     {
         /// <summary>
         /// The folder to monitor.

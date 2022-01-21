@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
-using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Monitoring.Notifications;
@@ -31,7 +28,7 @@ namespace FolderProcessor.Monitoring.Streams
     /// </summary>
     [UsedImplicitly]
     public class FileSystemStreamHandler : 
-        IStreamRequestHandler<FileSystemStream, IFileRecord>
+        IRequestHandler<FileSystemStream>
     {
         private readonly ISeenFileStore _seenFileStore;
         private readonly ILogger<FileSystemStreamHandler> _logger;
@@ -50,28 +47,28 @@ namespace FolderProcessor.Monitoring.Streams
             _publisher = publisher;
         }
 
-        public IAsyncEnumerable<IFileRecord> Handle(
+        public Task<Unit> Handle(
             FileSystemStream request, 
             CancellationToken cancellationToken)
         {
             _logger.LogInformation("Started monitoring {Folder}", request.Folder);
             
-            var channel = Channel.CreateUnbounded<IFileRecord>();
-            var watcher = SetupWatcher(request.Folder, channel, cancellationToken);
-            
-            cancellationToken.Register(() =>
+            var watcher = SetupWatcher(request.Folder, cancellationToken);
+            void ShutdownWatcher(TaskCompletionSource<Unit> source)
             {
                 watcher.Dispose();
-                channel.Writer.Complete();
-            });
+                source.SetResult(Unit.Value);
+            }
+
+            var tcs = new TaskCompletionSource<Unit>();
+            cancellationToken.Register(s => 
+                ShutdownWatcher((TaskCompletionSource<Unit>)s), tcs);
             
-            // The above watcher setup handles the shutdown gracefully for us.
-            return channel.Reader.ReadAllAsync(CancellationToken.None);
+            return tcs.Task;
         }
-        
+
         private IFileSystemWatcher SetupWatcher(
-            string folder, 
-            Channel<IFileRecord, IFileRecord> channel,
+            string folder,
             CancellationToken cancellationToken)
         {
             var watcher = _fileSystem.FileSystemWatcher.CreateNew(folder);
@@ -84,14 +81,13 @@ namespace FolderProcessor.Monitoring.Streams
                                     | NotifyFilters.Security
                                     | NotifyFilters.Size;
             watcher.EnableRaisingEvents = true;
-            watcher.Created += (_, args) => OnWatcherOnChanged(args, channel, cancellationToken);
+            watcher.Created += (_, args) => OnWatcherOnChanged(args, cancellationToken);
 
             return watcher;
         }
 
         private async void OnWatcherOnChanged(
-            FileSystemEventArgs args, 
-            Channel<IFileRecord, IFileRecord> channel,
+            FileSystemEventArgs args,
             CancellationToken cancellationToken)
         {
             var path = args.FullPath;
@@ -108,10 +104,7 @@ namespace FolderProcessor.Monitoring.Streams
                 // We receive events about directories, but we don't care about them.
                 if ((_fileSystem.File.GetAttributes(path) &
                      FileAttributes.Directory) != 0) return;
-
-                await channel.Writer
-                    .WriteAsync(fileRecord, cancellationToken)
-                    .ConfigureAwait(false);
+                
                 await _publisher.Publish(
                         new FileSeenNotification {FileInfo = fileRecord},
                         cancellationToken)
