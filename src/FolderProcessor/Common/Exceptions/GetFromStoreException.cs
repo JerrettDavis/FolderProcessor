@@ -1,10 +1,13 @@
-namespace FolderProcessor.Common.Exceptions;
+using System;
 
-/// <summary>
-/// Thrown when there's an error fetching an item from a store.
-/// </summary>
-public class GetFromStoreException : Exception
+namespace FolderProcessor.Common.Exceptions
 {
-    public GetFromStoreException(object key) : 
-        base($"Could not get item with key '{key}' from the store.") {}
+    /// <summary>
+    /// Thrown when there's an error fetching an item from a store.
+    /// </summary>
+    public class GetFromStoreException : Exception
+    {
+        public GetFromStoreException(object key) : 
+            base($"Could not get item with key '{key}' from the store.") {}
+    }    
 }

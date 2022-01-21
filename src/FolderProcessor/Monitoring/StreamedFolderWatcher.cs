@@ -1,4 +1,9 @@
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using FolderProcessor.Abstractions;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Filters;
@@ -7,8 +12,8 @@ using FolderProcessor.Models.Processing.Notifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace FolderProcessor.Monitoring;
-
+namespace FolderProcessor.Monitoring
+{
 /// <summary>
 /// Receives a collection of <see cref="IFileStream"/> and uses <see cref="IMediator"/>
 /// to setup a <see cref="IStreamRequestHandler{TRequest,TResponse}"/> for each.
@@ -20,7 +25,7 @@ public class StreamedFolderWatcher :
     IDisposable
 {
     private readonly ConcurrentBag<Func<IAsyncEnumerable<IFileRecord>>> _streams;
-    private CancellationTokenSource? _cancellationTokenSource;
+    private CancellationTokenSource _cancellationTokenSource;
     private readonly IMediator _mediator;
     private readonly IPublisher _publisher;
     private readonly IEnumerable<IFileFilter> _filters;
@@ -73,9 +78,10 @@ public class StreamedFolderWatcher :
                 .ToArray());
             var merged = AsyncEnumerableEx.Merge(streams)
                 .WithCancellation(_cancellationTokenSource.Token);
-            await foreach (var file in merged)
+            var enumerator = merged.GetAsyncEnumerator();
+            while (await enumerator.MoveNextAsync())
             {
-                // We can add filters to the watcher to only emit files we care about.
+                var file = enumerator.Current;
                 var satisfiedFilters = await _filters
                     .ToAsyncEnumerable()
                     .AllAwaitAsync(async f => 
@@ -120,4 +126,6 @@ public class StreamedFolderWatcher :
         _cancellationTokenSource?.Dispose();
         GC.SuppressFinalize(this);
     }
+}    
 }
+

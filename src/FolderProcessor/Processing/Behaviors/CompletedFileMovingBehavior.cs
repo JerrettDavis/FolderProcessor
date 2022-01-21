@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Providers;
@@ -7,8 +9,8 @@ using FolderProcessor.Models.Processing.Notifications;
 using JetBrains.Annotations;
 using MediatR;
 
-namespace FolderProcessor.Processing.Behaviors;
-
+namespace FolderProcessor.Processing.Behaviors
+{
 /// <summary>
 /// This behavior moves files to the completed directory once they have completed
 /// successfully.
@@ -54,7 +56,7 @@ public class CompletedFileMovingBehavior<TRequest, TResponse> :
             .MoveFileAsync(file, _provider, cancellationToken);
 
         // Remove it from seen and add it to working
-        var newFileLocation = file with {Path = destination};
+        var newFileLocation = new FileRecord(file.Id, destination, file.FileName);
         
         await Task.WhenAll(
             _completedStore.AddAsync(
@@ -70,4 +72,6 @@ public class CompletedFileMovingBehavior<TRequest, TResponse> :
 
         return result;
     }
+}    
 }
+

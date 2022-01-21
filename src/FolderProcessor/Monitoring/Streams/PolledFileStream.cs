@@ -1,5 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
+using System.Threading;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Abstractions.Stores;
@@ -9,8 +15,8 @@ using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace FolderProcessor.Monitoring.Streams;
-
+namespace FolderProcessor.Monitoring.Streams
+{
 /// <summary>
 /// Instructs the application to setup a new <see cref="PolledFileStreamHandler"/>
 /// matching the passed parameters.
@@ -19,7 +25,7 @@ namespace FolderProcessor.Monitoring.Streams;
 public class PolledFileStream : IFileStream
 {
     /// <inheritdoc />
-    public string Folder { get; set; } = null!;
+    public string Folder { get; set; }
     
     /// <summary>
     /// The frequency in which to poll the folder for new files.
@@ -131,4 +137,6 @@ public class PolledFileStreamHandler :
         await channel.Writer.WriteAsync(info, cancellationToken)
             .ConfigureAwait(false);
     }
+}    
 }
+

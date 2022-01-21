@@ -1,19 +1,20 @@
 using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Common.Exceptions;
 
-namespace FolderProcessor.Stores;
-
+namespace FolderProcessor.Stores
+{
 /// <summary>
 /// Provides a base thread-safe store for storing generic objects.
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
 /// <typeparam name="TType">The type of the object being stored.</typeparam>
 public abstract class Store<TKey, TType> : IStore<TKey, TType>
-    where TKey : notnull
     where TType : class
 {
-    protected readonly ConcurrentDictionary<TKey, TType> Dictionary = new();
+    protected readonly ConcurrentDictionary<TKey, TType> Dictionary = new ConcurrentDictionary<TKey, TType>();
 
     public virtual void Add(TKey key, TType item)
     {
@@ -60,4 +61,6 @@ public abstract class Store<TKey, TType> : IStore<TKey, TType>
         CancellationToken cancellationToken = default) =>
         await Task.Run(() => Remove(key), cancellationToken)
             .ConfigureAwait(false);
+}    
 }
+

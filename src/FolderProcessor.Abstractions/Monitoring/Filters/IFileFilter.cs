@@ -1,18 +1,21 @@
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
-namespace FolderProcessor.Abstractions.Monitoring.Filters;
-
-/// <summary>
-/// Defines a filter used for determining if a file is valid.
-/// </summary>
-[PublicAPI]
-public interface IFileFilter
+namespace FolderProcessor.Abstractions.Monitoring.Filters
 {
     /// <summary>
-    /// Determines if the inputted file is valid
+    /// Defines a filter used for determining if a file is valid.
     /// </summary>
-    /// <param name="input">The file to check</param>
-    /// <param name="cancellationToken">Cancels the operations</param>
-    /// <returns>True if the file is valid.</returns>
-    Task<bool> IsValid(string input, CancellationToken cancellationToken = default);
+    [PublicAPI]
+    public interface IFileFilter
+    {
+        /// <summary>
+        /// Determines if the inputted file is valid
+        /// </summary>
+        /// <param name="input">The file to check</param>
+        /// <param name="cancellationToken">Cancels the operations</param>
+        /// <returns>True if the file is valid.</returns>
+        Task<bool> IsValid(string input, CancellationToken cancellationToken = default);
+    }
 }

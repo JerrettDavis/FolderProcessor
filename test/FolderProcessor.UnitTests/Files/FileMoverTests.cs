@@ -11,35 +11,37 @@ using FolderProcessor.UnitTests.Setup.Customizations;
 using Moq;
 using Xunit;
 
-namespace FolderProcessor.UnitTests.Files;
-
-public class FileMoverTests
+namespace FolderProcessor.UnitTests.Files
 {
-    [Theory]
-    [InlineAutoMoqDataWithFileSystem("")]
-    [InlineAutoMoqDataWithFileSystem("Completed")]
-    public async Task ShouldMoveFile(
-        string directory,
-        [Frozen] MyMockFileSystem fileSystem,
-        [Frozen] Mock<IDirectoryProvider> provider,
-        FileRecord fileRecord,
-        FileMover fileMover)
+    public class FileMoverTests
     {
-        // Arrange
-        await fileSystem.File.WriteAllTextAsync(fileRecord.Path, "");
-        // Generally we'd use the filename, but since it's auto generated...
-        var path = Path.Combine(directory, fileRecord.Path);
-        provider.Setup(p => p.GetFileDestinationPathAsync(
-                It.Is<string>(i => i == fileRecord.Path), 
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(path);
+        [Theory]
+        [InlineAutoMoqDataWithFileSystem("")]
+        [InlineAutoMoqDataWithFileSystem("Completed")]
+        public async Task ShouldMoveFile(
+            string directory,
+            [Frozen] MyMockFileSystem fileSystem,
+            [Frozen] Mock<IDirectoryProvider> provider,
+            FileRecord fileRecord,
+            FileMover fileMover)
+        {
+            // Arrange
+            await fileSystem.File.WriteAllTextAsync(fileRecord.Path, "");
+            // Generally we'd use the filename, but since it's auto generated...
+            var path = Path.Combine(directory, fileRecord.Path);
+            provider.Setup(p => p.GetFileDestinationPathAsync(
+                    It.Is<string>(i => i == fileRecord.Path), 
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(path);
 
-        // Act
-        var result = await fileMover.MoveFileAsync(
-            fileRecord, provider.Object, CancellationToken.None);
+            // Act
+            var result = await fileMover.MoveFileAsync(
+                fileRecord, provider.Object, CancellationToken.None);
 
-        // Assert
-        result.Should().Be(path);
-        fileSystem.AllFiles.Should().ContainMatch($"*{path}");
-    }
+            // Assert
+            result.Should().Be(path);
+            fileSystem.AllFiles.Should().ContainMatch($"*{path}");
+        }
+    }    
 }
+

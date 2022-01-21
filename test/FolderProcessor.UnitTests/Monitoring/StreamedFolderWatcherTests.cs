@@ -12,31 +12,35 @@ using MediatR;
 using Moq;
 using Xunit;
 
-namespace FolderProcessor.UnitTests.Monitoring;
-
-public class StreamedFolderWatcherTests
+namespace FolderProcessor.UnitTests.Monitoring
 {
-    [Theory, AutoMoqDataWithFileStreamHandlers]
-    public async Task ShouldCreateAndStartFileStreams(
-        [Frozen] IEnumerable<IFileStream> fileStreams,
-        [Frozen] IPublisher publisher,
-        [Frozen] IMediator mediator,
-        StreamedFolderWatcher watcher)
+    public class StreamedFolderWatcherTests
     {
-        // Arrange
-        using var cancellationSource = new CancellationTokenSource();
-        var fsList = fileStreams.ToList();
+        [Theory, AutoMoqDataWithFileStreamHandlers]
+        public async Task ShouldCreateAndStartFileStreams(
+            [Frozen] IEnumerable<IFileStream> fileStreams,
+            [Frozen] IPublisher publisher,
+            [Frozen] IMediator mediator,
+            StreamedFolderWatcher watcher)
+        {
+            // Arrange
+            using (var cancellationSource = new CancellationTokenSource())
+            {
+                var fsList = fileStreams.ToList();
         
-        // Act
-        await Task.Run(() => cancellationSource.CancelAfter(2000), CancellationToken.None);
-        await Task.Run(async () => await watcher.StartAsync(cancellationSource.Token), CancellationToken.None);
+                // Act
+                await Task.Run(() => cancellationSource.CancelAfter(2000), CancellationToken.None);
+                await Task.Run(async () => await watcher.StartAsync(cancellationSource.Token), CancellationToken.None);
 
-        // Assert
-        Mock.Get(mediator)
-            .Verify(m => m.CreateStream(It.IsAny<IFileStream>(), It.IsAny<CancellationToken>()),
-                Times.Exactly(fsList.Count));
-        Mock.Get(publisher)
-            .Verify(p => p.Publish(It.IsAny<FileNeedsProcessingNotification>(), It.IsAny<CancellationToken>()),
-                Times.Exactly(MockFiles.Files.Count() * fsList.Count));
-    } 
+                // Assert
+                Mock.Get(mediator)
+                    .Verify(m => m.CreateStream(It.IsAny<IFileStream>(), It.IsAny<CancellationToken>()),
+                        Times.Exactly(fsList.Count));
+                Mock.Get(publisher)
+                    .Verify(p => p.Publish(It.IsAny<FileNeedsProcessingNotification>(), It.IsAny<CancellationToken>()),
+                        Times.Exactly(MockFiles.Files.Count() * fsList.Count));    
+            }
+        } 
+    }    
 }
+

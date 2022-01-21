@@ -2,13 +2,17 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>dotnet-FolderProcessor.Host-E07729CC-A639-4D92-A2AD-65ABDE678309</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <PackageVersion>0.0.1</PackageVersion>
         <Title>FolderProcessor.Host</Title>
         <Authors>Jerrett Davis</Authors>
+        <LangVersion>7.3</LangVersion>
+        <AssemblyName>FolderProcessor.Hosting</AssemblyName>
+        <RootNamespace>FolderProcessor.Hosting</RootNamespace>
+        <ImplicitUsings>disable</ImplicitUsings>
     </PropertyGroup>
 
     <ItemGroup>

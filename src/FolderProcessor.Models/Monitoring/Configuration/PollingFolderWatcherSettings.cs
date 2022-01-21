@@ -1,25 +1,28 @@
+using System;
 using JetBrains.Annotations;
 
-namespace FolderProcessor.Models.Monitoring.Configuration;
-
-/// <summary>
-/// Settings used to configure polling file watchers
-/// </summary>
-[PublicAPI]
-public class PollingFolderWatcherSettings : WatcherSettings
+namespace FolderProcessor.Models.Monitoring.Configuration
 {
     /// <summary>
-    /// How long to wait in between checks for new files
+    /// Settings used to configure polling file watchers
     /// </summary>
-    public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(30);
-
-    public PollingFolderWatcherSettings()
+    [PublicAPI]
+    public class PollingFolderWatcherSettings : WatcherSettings
     {
-        Type = WatcherType.Polling;
-    }
+        /// <summary>
+        /// How long to wait in between checks for new files
+        /// </summary>
+        public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(30);
 
-    public PollingFolderWatcherSettings(string folder) : this()
-    {
-        Folder = folder;
-    }
+        public PollingFolderWatcherSettings()
+        {
+            Type = WatcherType.Polling;
+        }
+
+        public PollingFolderWatcherSettings(string folder) : this()
+        {
+            Folder = folder;
+        }
+    }    
 }
+

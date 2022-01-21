@@ -10,28 +10,30 @@ using MediatR;
 using Moq;
 using Xunit;
 
-namespace FolderProcessor.UnitTests.Processing.Notifications;
-
-public class FileNeedsProcessingNotificationHandlerTests
+namespace FolderProcessor.UnitTests.Processing.Notifications
 {
-    [Theory, AutoMoqData]
-    public async Task ShouldSendProcessingRequest(
-        [Frozen] IMediator mediator,
-        FileRecord fileRecord,
-        FileNeedsProcessingNotificationHandler handler)
+    public class FileNeedsProcessingNotificationHandlerTests
     {
-        // Arrange
-        var request = new FileNeedsProcessingNotification
+        [Theory, AutoMoqData]
+        public async Task ShouldSendProcessingRequest(
+            [Frozen] IMediator mediator,
+            FileRecord fileRecord,
+            FileNeedsProcessingNotificationHandler handler)
         {
-            File = fileRecord
-        };
+            // Arrange
+            var request = new FileNeedsProcessingNotification
+            {
+                File = fileRecord
+            };
 
-        // Act
-        await handler.Handle(request, CancellationToken.None);
+            // Act
+            await handler.Handle(request, CancellationToken.None);
 
-        // Assert
-        Mock.Get(mediator).Verify(m => m.Send(
-            It.Is<ProcessFileRequest>(p => p.FileId == fileRecord.Id),
-            It.IsAny<CancellationToken>()));
-    }
+            // Assert
+            Mock.Get(mediator).Verify(m => m.Send(
+                It.Is<ProcessFileRequest>(p => p.FileId == fileRecord.Id),
+                It.IsAny<CancellationToken>()));
+        }
+    }    
 }
+

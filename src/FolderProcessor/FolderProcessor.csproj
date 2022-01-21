@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <TargetFramework>net6.0</TargetFramework>
         <PackageVersion>0.0.1</PackageVersion>
@@ -13,6 +13,8 @@
         <PackageProjectUrl>https://github.com/JerrettDavis/FolderProcessor</PackageProjectUrl>
         <RepositoryUrl>https://github.com/JerrettDavis/FolderProcessor</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <LangVersion>7.3</LangVersion>
+        <ImplicitUsings>disable</ImplicitUsings>
     </PropertyGroup>
 
     <ItemGroup>

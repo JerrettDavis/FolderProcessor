@@ -1,7 +1,12 @@
-namespace FolderProcessor.Abstractions;
+using System.Threading;
+using System.Threading.Tasks;
 
-public interface IWorkerControl
+namespace FolderProcessor.Abstractions
 {
-    Task StartAsync(CancellationToken cancellationToken);
-    Task StopAsync(CancellationToken cancellationToken);
+    public interface IWorkerControl
+    {
+        Task StartAsync(CancellationToken cancellationToken);
+        Task StopAsync(CancellationToken cancellationToken);
+    }    
 }
+

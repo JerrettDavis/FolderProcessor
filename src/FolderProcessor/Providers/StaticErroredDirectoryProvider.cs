@@ -1,14 +1,15 @@
 using System.IO.Abstractions;
 using FolderProcessor.Abstractions.Providers;
 
-namespace FolderProcessor.Providers;
-
-public class StaticErroredDirectoryProvider :
-    StaticDirectoryProvider, IErroredDirectoryProvider
+namespace FolderProcessor.Providers
 {
-    public StaticErroredDirectoryProvider(
-        string folder,
-        IFileSystem fileSystem) :
-        base(folder, fileSystem)
-    { }
+    public class StaticErroredDirectoryProvider :
+        StaticDirectoryProvider, IErroredDirectoryProvider
+    {
+        public StaticErroredDirectoryProvider(
+            string folder,
+            IFileSystem fileSystem) :
+            base(folder, fileSystem)
+        { }
+    }    
 }

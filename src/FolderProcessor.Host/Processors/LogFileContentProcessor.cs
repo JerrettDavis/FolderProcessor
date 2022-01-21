@@ -1,45 +1,50 @@
 using System.IO.Abstractions;
+using System.Threading;
+using System.Threading.Tasks;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Processing;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 
-namespace FolderProcessor.Host.Processors;
-
-/// <summary>
-/// A demonstration <see cref="IProcessor"/> that simply logs the contents of
-/// every file it encounters.
-/// </summary>
-[UsedImplicitly]
-public class LogFileContentProcessor : IProcessor
+namespace FolderProcessor.Hosting.Processors
 {
-    private readonly ILogger<LogFileContentProcessor> _logger;
-    private readonly IFileSystem _fileSystem;
-
-    public LogFileContentProcessor(
-        ILogger<LogFileContentProcessor> logger, 
-        IFileSystem fileSystem)
+    /// <summary>
+    /// A demonstration <see cref="IProcessor"/> that simply logs the contents of
+    /// every file it encounters.
+    /// </summary>
+    [UsedImplicitly]
+    public class LogFileContentProcessor : IProcessor
     {
-        _logger = logger;
-        _fileSystem = fileSystem;
-    }
+        private readonly ILogger<LogFileContentProcessor> _logger;
+        private readonly IFileSystem _fileSystem;
 
-    public async Task ProcessAsync(
-        IFileRecord fileRecord, 
-        CancellationToken cancellationToken = default)
-    {
-        // This is DANGEROUS. Processors are ran concurrently, and this could cause
-        // the file to get locked if multiple processors are attempting to access
-        // it simultaneously.
-        var content = await _fileSystem.File
-            .ReadAllTextAsync(fileRecord.Path, cancellationToken);
+        public LogFileContentProcessor(
+            ILogger<LogFileContentProcessor> logger, 
+            IFileSystem fileSystem)
+        {
+            _logger = logger;
+            _fileSystem = fileSystem;
+        }
+
+        public async Task ProcessAsync(
+            IFileRecord fileRecord, 
+            CancellationToken cancellationToken = default)
+        {
+            // This is DANGEROUS. Processors are ran concurrently, and this could cause
+            // the file to get locked if multiple processors are attempting to access
+            // it simultaneously.
+            var content = await _fileSystem.File
+                .ReadAllTextAsync(fileRecord.Path, cancellationToken);
         
-        _logger.LogInformation("File {File}. Content '{Content}'", fileRecord, content);
-    }
+            _logger.LogInformation("File {File}. Content '{Content}'", fileRecord, content);
+        }
     
-    public Task<bool> AppliesAsync(
-        IFileRecord fileRecord, 
-        CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(true);
-    }
+        public Task<bool> AppliesAsync(
+            IFileRecord fileRecord, 
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(true);
+        }
+    }    
 }
+

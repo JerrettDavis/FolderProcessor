@@ -15,40 +15,41 @@ using MediatR;
 using Moq;
 using Xunit;
 
-namespace FolderProcessor.UnitTests.Processing.Behaviors;
-
-public class ErroredFileMovingBehaviorTests
+namespace FolderProcessor.UnitTests.Processing.Behaviors
 {
-    [Theory, AutoMoqDataWithFileSystem]
-    public async Task ShouldMoveFileToNewFolder(
-        [Frozen] IErroredFileStore erroredFileStore,
-        [Frozen] IWorkingFileStore workingFileStore,
-        [Frozen] Mock<IFileMover> fileMover,
-        FileRecord record,
-        ErroredFileMovingBehavior<IProcessFileRequest, Unit> behavior) 
+    public class ErroredFileMovingBehaviorTests
     {
-        // Arrange
-        await workingFileStore.AddAsync(record.Id, record);
+        [Theory, AutoMoqDataWithFileSystem]
+        public async Task ShouldMoveFileToNewFolder(
+            [Frozen] IErroredFileStore erroredFileStore,
+            [Frozen] IWorkingFileStore workingFileStore,
+            [Frozen] Mock<IFileMover> fileMover,
+            FileRecord record,
+            ErroredFileMovingBehavior<IProcessFileRequest, Unit> behavior) 
+        {
+            // Arrange
+            await workingFileStore.AddAsync(record.Id, record);
         
-        var request = new ProcessFileRequest {FileId = record.Id};
-        var newName = Guid.NewGuid().ToString();
+            var request = new ProcessFileRequest {FileId = record.Id};
+            var newName = Guid.NewGuid().ToString();
         
-        fileMover.Setup(f => f.MoveFileAsync(
-                It.IsAny<IFileRecord>(),
-                It.IsAny<IDirectoryProvider>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(newName);
+            fileMover.Setup(f => f.MoveFileAsync(
+                    It.IsAny<IFileRecord>(),
+                    It.IsAny<IDirectoryProvider>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(newName);
 
-        // Act
-        Func<Task<Unit>> func = async () => await behavior
-            .Handle(request, CancellationToken.None, () => throw new Exception());
+            // Act
+            Func<Task<Unit>> func = async () => await behavior
+                .Handle(request, CancellationToken.None, () => throw new Exception());
 
-        await func.Should().ThrowAsync<Exception>();
+            await func.Should().ThrowAsync<Exception>();
         
-        var newFile = await erroredFileStore.GetAsync(record.Id, CancellationToken.None);
+            var newFile = await erroredFileStore.GetAsync(record.Id, CancellationToken.None);
         
-        // Assert
-        (await erroredFileStore.ContainsAsync(record.Id)).Should().BeTrue();
-        newFile.Path.Should().Be(newName);
-    }
+            // Assert
+            (await erroredFileStore.ContainsAsync(record.Id)).Should().BeTrue();
+            newFile.Path.Should().Be(newName);
+        }
+    }   
 }
