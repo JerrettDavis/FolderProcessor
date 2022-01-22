@@ -41,10 +41,4 @@
       <None Remove="TestResults\**" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="FolderProcessor, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\src\FolderProcessor.Host\bin\Debug\net6.0\FolderProcessor.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>
