@@ -71,23 +71,17 @@ public class StreamedFolderWatcher :
             var streams = await Task.WhenAll(_streams.Select(s =>
                     Task.Run(s, _cancellationTokenSource.Token))
                 .ToArray());
-            var merged = AsyncEnumerableEx.Merge(streams)
-                .WithCancellation(_cancellationTokenSource.Token);
-            await foreach (var file in merged)
-            {
-                // We can add filters to the watcher to only emit files we care about.
-                var satisfiedFilters = await _filters
-                    .ToAsyncEnumerable()
-                    .AllAwaitAsync(async f => 
-                            await f.IsValid(file.Path, cancellationToken),
-                        cancellationToken);
-                if (!satisfiedFilters) continue;
-
-                _logger.LogDebug("Incoming {File}", file);
-                await _publisher.Publish(
-                    new FileNeedsProcessingNotification {File = file},
+            await AsyncEnumerableEx.Merge(streams)
+                // Remove all that don't satisfy filters
+                .WhereAwaitWithCancellation(async (s, t) =>
+                    await _filters.ToAsyncEnumerable()
+                        .AllAwaitWithCancellationAsync(async (f, ct) =>
+                            await f.IsValid(s.Path, ct), t))
+                // Iterate over each record and enqueue for processing
+                .ForEachAwaitWithCancellationAsync(async (f, t) =>
+                    await _publisher.Publish(
+                        new FileNeedsProcessingNotification {File = f}, t),
                     cancellationToken);
-            }
         }
         catch (AggregateException ae)
         {

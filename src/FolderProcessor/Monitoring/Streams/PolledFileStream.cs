@@ -1,10 +1,8 @@
 using System.IO.Abstractions;
-using System.Threading.Channels;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Abstractions.Stores;
-using FolderProcessor.Models.Files;
-using FolderProcessor.Models.Monitoring.Notifications;
+using FolderProcessor.Common.Utilities;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -35,100 +33,30 @@ public class PolledFileStreamHandler :
     IStreamRequestHandler<PolledFileStream, IFileRecord>
 {
     private readonly ISeenFileStore _seenFileStore;
-    private readonly IPublisher _publisher;
     private readonly IFileSystem _fileSystem;
-    private readonly ILogger<PolledFileStreamHandler> _logger;
-    
+    private readonly ILogger<PolledFileStream> _logger;
+
     public PolledFileStreamHandler(
-        ISeenFileStore seenFileStore, 
-        IPublisher publisher, 
-        ILogger<PolledFileStreamHandler> logger, 
-        IFileSystem fileSystem)
+        ISeenFileStore seenFileStore,
+        IFileSystem fileSystem, 
+        ILogger<PolledFileStream> logger)
     {
         _seenFileStore = seenFileStore;
-        _publisher = publisher;
-        _logger = logger;
         _fileSystem = fileSystem;
+        _logger = logger;
     }
 
     public IAsyncEnumerable<IFileRecord> Handle(
         PolledFileStream request, 
         CancellationToken cancellationToken)
     {
-        var channel = Channel.CreateUnbounded<FileRecord>(); 
-        // Defer the poll to a background worker so our channel can return.
-        Task.Run(async () => 
-            await FolderPoller(
-                request.Folder, 
-                request.Interval, 
-                channel, 
-                cancellationToken),
-            CancellationToken.None); // Poller is self-killing
-        cancellationToken.Register(() => channel.Writer.Complete());
-        
-        return channel.Reader.ReadAllAsync(CancellationToken.None);
-    }
-    
-    private async Task FolderPoller(
-        string folder,
-        TimeSpan interval,
-        Channel<FileRecord, FileRecord> channel,
-        CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await Task.WhenAll(
-                    _fileSystem.Directory.EnumerateFiles(folder)
-                        .Where(f => !_seenFileStore.ContainsPath(f))
-                        .AsParallel()
-                        .Select(async f =>
-                            await FileSeen(f, channel, cancellationToken))
-                        .ToList());
-
-                _logger.LogInformation("Polled {Directory} at: {Time}",
-                    folder, DateTimeOffset.Now);
-
-                await Task.Delay(interval, cancellationToken)
-                    .ContinueWith(_ => { }, CancellationToken.None);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                await _publisher.Publish(
-                    new DirectoryNotFoundNotification {Path = folder},
-                        cancellationToken);
-                _logger.LogError(
-                    "Folder {Folder} cannot be found. Shutting down poller.",
-                    folder);
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, 
-                    "An error occurred while running file polling mechanism." +
-                    "Polling will continue, but files may be skipped...");
-
-                await Task.Delay(interval, CancellationToken.None);
-            }
-        }
-    }
-    
-    private async Task FileSeen(
-        string path, 
-        Channel<FileRecord, FileRecord> channel,
-        CancellationToken cancellationToken)
-    {
-        var fileName = _fileSystem.Path.GetFileName(path);
-        var info = new FileRecord(path, fileName);
-                        
-        await _seenFileStore.AddAsync(info.Id, info, cancellationToken)
-            .ConfigureAwait(false);
-        await _publisher.Publish(
-            new FileSeenNotification {FileInfo = info}, 
-            cancellationToken).ConfigureAwait(false);
-
-        await channel.Writer.WriteAsync(info, cancellationToken)
-            .ConfigureAwait(false);
+        return AppTaskExt.Timer(request.Interval, cancellationToken)
+            .Do(_ => _logger.LogInformation("Poller for {Directory} running", request.Folder))
+            .Select(_ => _fileSystem.Directory
+                .EnumerateFiles(request.Folder)
+                .AsParallel()
+                .Where(f => !_seenFileStore.ContainsPath(f))
+                .Select(_seenFileStore.AddFileRecord))
+            .SelectMany(f => f.ToAsyncEnumerable());
     }
 }

@@ -67,9 +67,6 @@ public class FileSystemStreamHandlerTests
         // Assert
         result.Should().NotBeNullOrEmpty();
         result.Should().HaveCount(count);
-        Mock.Get(publisher).Verify(p => 
-            p.Publish(It.IsAny<FileSeenNotification>(), It.IsAny<CancellationToken>()),
-            Times.Exactly(count));
     }
 
     [Theory, AutoMoqDataWithFileSystem]

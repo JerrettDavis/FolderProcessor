@@ -3,7 +3,6 @@ using System.Threading.Channels;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Abstractions.Stores;
-using FolderProcessor.Models.Monitoring.Notifications;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -31,18 +30,15 @@ public class FileSystemStreamHandler :
     private readonly ISeenFileStore _seenFileStore;
     private readonly ILogger<FileSystemStreamHandler> _logger;
     private readonly IFileSystem _fileSystem;
-    private readonly IPublisher _publisher;
 
     public FileSystemStreamHandler(
         ISeenFileStore seenFileStore, 
         ILogger<FileSystemStreamHandler> logger, 
-        IFileSystem fileSystem,
-        IPublisher publisher)
+        IFileSystem fileSystem)
     {
         _seenFileStore = seenFileStore;
         _logger = logger;
         _fileSystem = fileSystem;
-        _publisher = publisher;
     }
 
     public IAsyncEnumerable<IFileRecord> Handle(
@@ -50,24 +46,18 @@ public class FileSystemStreamHandler :
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("Started monitoring {Folder}", request.Folder);
-        
-        var channel = Channel.CreateUnbounded<IFileRecord>();
-        var watcher = SetupWatcher(request.Folder, channel, cancellationToken);
-        
-        cancellationToken.Register(() =>
-        {
-            watcher.Dispose();
-            channel.Writer.Complete();
-        });
-        
-        // The above watcher setup handles the shutdown gracefully for us.
-        return channel.Reader.ReadAllAsync(CancellationToken.None);
+        var watcher = SetupWatcher(request.Folder);
+
+        return EventToAsyncEnumerable(watcher, cancellationToken)
+            .WhereAwaitWithCancellation(async (f,t) => 
+                !await _seenFileStore
+                    .ContainsPathAsync(f, t))
+            .Select(_seenFileStore.AddFileRecord)
+            .WhereAwaitWithCancellation(async (f,t) => 
+                !await IsDirectory(f.Id, f.Path, t));
     }
     
-    private IFileSystemWatcher SetupWatcher(
-        string folder, 
-        Channel<IFileRecord, IFileRecord> channel,
-        CancellationToken cancellationToken)
+    private IFileSystemWatcher SetupWatcher(string folder)
     {
         var watcher = _fileSystem.FileSystemWatcher.CreateNew(folder);
         watcher.NotifyFilter = NotifyFilters.Attributes
@@ -79,40 +69,31 @@ public class FileSystemStreamHandler :
                                 | NotifyFilters.Security
                                 | NotifyFilters.Size;
         watcher.EnableRaisingEvents = true;
-        watcher.Created += (_, args) => OnWatcherOnChanged(args, channel, cancellationToken);
 
         return watcher;
     }
 
-    private async void OnWatcherOnChanged(
-        FileSystemEventArgs args, 
-        Channel<IFileRecord, IFileRecord> channel,
+    private static IAsyncEnumerable<string> EventToAsyncEnumerable(
+        IFileSystemWatcher watcher,
         CancellationToken cancellationToken)
     {
-        var path = args.FullPath;
-        if (await _seenFileStore
-                .ContainsPathAsync(path, cancellationToken)
-                .ConfigureAwait(false)) 
-            return;
+        var channel = Channel.CreateUnbounded<string>();
         
-        var fileRecord = _seenFileStore.AddFileRecord(path);
-        _logger.LogDebug("Saw {Record}", fileRecord);
+        cancellationToken.Register(() => channel.Writer.Complete());
+        watcher.Created += async (_, args) => await 
+            channel.Writer.WriteAsync(args.FullPath, cancellationToken);
 
+        return channel.Reader.ReadAllAsync(CancellationToken.None);
+    }
+
+    private async Task<bool> IsDirectory(Guid id, string path, CancellationToken cancellationToken)
+    {
         try
         {
-            // We receive events about directories, but we don't care about them.
-            if ((_fileSystem.File.GetAttributes(path) & 
-                 FileAttributes.Directory) != 0) return;
-
-            await channel.Writer
-                .WriteAsync(fileRecord, cancellationToken)
-                .ConfigureAwait(false);
-            await _publisher.Publish(
-                new FileSeenNotification { FileInfo = fileRecord }, 
-                cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (Exception ex) when 
+            return (_fileSystem.File.GetAttributes(path) & 
+                    FileAttributes.Directory) != 0;
+            
+        } catch (Exception ex) when 
             (ex is FileNotFoundException or DirectoryNotFoundException)
         {
             _logger.LogWarning(
@@ -120,14 +101,11 @@ public class FileSystemStreamHandler :
                 "Will not be broadcast", path);
             
             await _seenFileStore
-                .RemoveAsync(fileRecord.Id, cancellationToken)
+                .RemoveAsync(id, cancellationToken)
                 .ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogWarning(
-                "Watcher shutdown while {File} was being handled", 
-                args.FullPath);
+
+            // Skip it like a directory
+            return true;
         }
     }
 }

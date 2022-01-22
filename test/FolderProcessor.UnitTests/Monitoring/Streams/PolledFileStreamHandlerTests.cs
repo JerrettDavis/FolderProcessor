@@ -68,42 +68,5 @@ public class PolledFileStreamHandlerTests
         // Assert
         result.Should().NotBeNullOrEmpty();
         result.Should().HaveCount(count);
-        Mock.Get(publisher).Verify(p =>
-                p.Publish(It.IsAny<FileSeenNotification>(), It.IsAny<CancellationToken>()),
-            Times.Exactly(count));
-    }
-
-    [Theory, AutoMoqDataWithFileSystem]
-    public async Task ShouldHandleFileNotFound(
-        [Frozen] MyMockFileSystem fileSystem,
-        [Frozen] IPublisher publisher,
-        PolledFileStreamHandler handler)
-    {
-        // Arrange
-        var root = fileSystem.AllDirectories.MinBy(r => r.Length)!;
-        var request = new PolledFileStream
-        {
-            Folder = Path.Combine(root, "Data", "2"),
-            Interval = TimeSpan.Zero
-        };
-        using var cancellationTokenSource = new CancellationTokenSource();
-
-        // Act
-        // Start watching
-        var handle = handler
-            .Handle(request, cancellationTokenSource.Token)
-            .ToListAsync(CancellationToken.None);
-
-        // Cancel monitoring
-        cancellationTokenSource.CancelAfter(1000);
-
-        await handle;
-
-        // Assert
-        Mock.Get(publisher)
-            .Verify(p => p.Publish(
-                    It.IsAny<DirectoryNotFoundNotification>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
     }
 }
