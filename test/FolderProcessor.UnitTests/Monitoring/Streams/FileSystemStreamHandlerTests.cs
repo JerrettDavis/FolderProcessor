@@ -27,7 +27,7 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams
             FileSystemStreamHandler handler)
         {
             // Arrange
-            var root = fileSystem.AllDirectories.MinBy(r => r.Length);
+            var root = fileSystem.AllDirectories.OrderBy(r => r.Length).First();
             Assert.NotNull(root);
             var beenSeen = Path.Combine(root, @"Data","BeenSeen.txt");
             seenFileStore.AddFileRecord(beenSeen);
@@ -80,7 +80,7 @@ namespace FolderProcessor.UnitTests.Monitoring.Streams
             FileSystemStreamHandler handler)
         {
             // Arrange
-            var root = fileSystem.AllDirectories.MinBy(r => r.Length);
+            var root = fileSystem.AllDirectories.OrderBy(r => r.Length).First();
             Assert.NotNull(root);
             var request = new FileSystemStream { Folder = Path.Combine(root, "Data", "2") };
             var cancellationTokenSource = new CancellationTokenSource();

@@ -13,7 +13,7 @@
         <Copyright>Copyright (c) Jerrett Davis 2022</Copyright>
         <LangVersion>7.3</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
-        <TargetFrameworks>net471;net472;net48;net6.0;netstandard2.0;netstandard2.1</TargetFrameworks>
+        <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

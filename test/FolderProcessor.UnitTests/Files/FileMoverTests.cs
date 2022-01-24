@@ -26,7 +26,7 @@ namespace FolderProcessor.UnitTests.Files
             FileMover fileMover)
         {
             // Arrange
-            await fileSystem.File.WriteAllTextAsync(fileRecord.Path, "");
+            fileSystem.File.WriteAllText(fileRecord.Path, "");
             // Generally we'd use the filename, but since it's auto generated...
             var path = Path.Combine(directory, fileRecord.Path);
             provider.Setup(p => p.GetFileDestinationPathAsync(

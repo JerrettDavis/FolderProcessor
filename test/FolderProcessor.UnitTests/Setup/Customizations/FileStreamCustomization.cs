@@ -29,36 +29,9 @@ namespace FolderProcessor.UnitTests.Setup.Customizations
                 .ReturnsAsync(true);
             
             var mediatrMock = fixture.Freeze<Mock<IMediator>>();
-            
-            // mediatrMock.Setup(m => m.CreateStream(It.IsAny<MockFileStream>(), It.IsAny<CancellationToken>()))
-            //     .Callback((IStreamRequest<IFileRecord> s, CancellationToken t) =>
-            //     {
-            //         var c = s as MockFileStream;
-            //         Assert.NotNull(c);
-            //         Task.Run(async () =>
-            //         {
-            //             await Task.Delay(100, t);
-            //             var tasks = MockFiles.Files
-            //                 .ToList()
-            //                 .Select(e => MockFileStreamHandler.AddFile(c.Folder, e));
-            //             await Task.WhenAll(tasks);
-            //         }, t);
-            //     })
-            //     .Returns((IFileStream s, CancellationToken t) => fixture.Freeze<MockFileStreamHandler>().Handle(s, t));
-            
+
             fixture.Register(() => mediatrMock.Object);
         }
-    }
-
-    public struct MockFiles
-    {
-        public static IEnumerable<string> Files => new[]
-        {
-            "tmp.txt",
-            "tmp.xml",
-            "tmp.bmp",
-            "tmp.xsd"
-        };
     }
 
     public class MockFileStream : IFileStream
