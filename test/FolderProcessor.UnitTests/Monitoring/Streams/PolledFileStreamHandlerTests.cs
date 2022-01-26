@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture.Xunit2;
 using FluentAssertions;
+using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Stores;
-using FolderProcessor.Models.Monitoring.Notifications;
 using FolderProcessor.Monitoring.Streams;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using FolderProcessor.UnitTests.Setup.Customizations;
 using MediatR;
-using Moq;
 using Xunit;
 
 namespace FolderProcessor.UnitTests.Monitoring.Streams;
@@ -23,7 +23,6 @@ public class PolledFileStreamHandlerTests
     public async Task ShouldSeeExistingFilesAndNewlyCreatedFiles(
         [Frozen] MyMockFileSystem fileSystem,
         [Frozen] ISeenFileStore seenFileStore,
-        [Frozen] IPublisher publisher,
         PolledFileStreamHandler handler)
     {
         // Arrange
@@ -48,25 +47,39 @@ public class PolledFileStreamHandlerTests
 
         // Act
         // Start watching
-        var handle = handler.Handle(request, cancellationTokenSource.Token)
-            .ToListAsync(CancellationToken.None);
+        var handle = handler.Handle(request, cancellationTokenSource.Token);
         // Run a task to create some files and cancel after some time
-        await Task.Run(() =>
+        var filesTask = Task.Run(async () =>
             {
                 files.ForEach(f => fileSystem.FileSystemWatcherFactory.NewFile(f));
                 // This should not be returned in the array since it's a directory
                 fileSystem.FileSystemWatcherFactory.NewFile(Path.Combine(root, "Data", "Data2"));
-                
-                // Wait some time and then cancel        
+
+                await Task.Delay(1000, CancellationToken.None);
+
+                // ReSharper disable once AccessToDisposedClosure
                 cancellationTokenSource.CancelAfter(TimeSpan.FromMilliseconds(1000));
             },
             CancellationToken.None);
-
+        var output = new ConcurrentBag<IFileRecord>();
+        var toListTask = Task.Run(async () =>
+        {
+            try
+            {
+                // ReSharper disable once AccessToDisposedClosure
+                await foreach (var item in handle.WithCancellation(cancellationTokenSource.Token))
+                {
+                    output.Add(item);
+                }     
+            } catch (OperationCanceledException) {}
+            
+        }, CancellationToken.None);
+        
         // Await completion
-        var result = await handle;
+        await Task.WhenAll(filesTask, toListTask);
 
         // Assert
-        result.Should().NotBeNullOrEmpty();
-        result.Should().HaveCount(count);
+        output.Should().NotBeNullOrEmpty();
+        output.Should().HaveCount(count);
     }
 }
