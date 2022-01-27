@@ -53,4 +53,31 @@ public class ErroredFileMovingBehaviorTests
         (await erroredFileStore.ContainsAsync(record.Id)).Should().BeTrue();
         newFile.Path.Should().Be(newName);
     }
+    
+    [Theory, AutoMoqDataWithFileSystem]
+    public async Task SuccessfulFile_ShouldNotMoveFileToNewFolder(
+        [Frozen] IErroredFileStore erroredFileStore,
+        [Frozen] IWorkingFileStore workingFileStore,
+        [Frozen] Mock<IRequestHandler<IProcessFileRequest, IProcessFileResult>> handler, 
+        FileRecord record,
+        ErroredFileMovingBehavior behavior) 
+    {
+        // Arrange
+        handler.Setup(h => h.Handle(It.IsAny<IProcessFileRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ProcessFileResult(record));
+        await workingFileStore.AddAsync(record.Id, record);
+        
+        var request = new ProcessFileRequest {FileId = record.Id};
+        
+        // Act
+        await behavior.Handle(request, CancellationToken.None, 
+            () => handler.Object.Handle(request, CancellationToken.None));
+        
+        var sameFile = await workingFileStore.GetAsync(record.Id, CancellationToken.None);
+        
+        // Assert
+        (await erroredFileStore.ContainsAsync(record.Id)).Should().BeFalse();
+        (await workingFileStore.ContainsAsync(record.Id)).Should().BeTrue();
+        sameFile.Path.Should().Be(record.Path);
+    }
 }

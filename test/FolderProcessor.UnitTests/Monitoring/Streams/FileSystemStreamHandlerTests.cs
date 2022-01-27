@@ -7,12 +7,9 @@ using System.Threading.Tasks;
 using AutoFixture.Xunit2;
 using FluentAssertions;
 using FolderProcessor.Abstractions.Stores;
-using FolderProcessor.Models.Monitoring.Notifications;
 using FolderProcessor.Monitoring.Streams;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using FolderProcessor.UnitTests.Setup.Customizations;
-using MediatR;
-using Moq;
 using Xunit;
 
 namespace FolderProcessor.UnitTests.Monitoring.Streams;
@@ -23,7 +20,6 @@ public class FileSystemStreamHandlerTests
     public async Task ShouldSeeNewlyCreatedFilesButIgnoreDirectories(
         [Frozen] MyMockFileSystem fileSystem,
         [Frozen] ISeenFileStore seenFileStore,
-        [Frozen] IPublisher publisher,
         FileSystemStreamHandler handler)
     {
         // Arrange

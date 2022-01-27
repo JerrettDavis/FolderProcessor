@@ -28,7 +28,7 @@ public class StreamedFolderWatcherTests
         var fsList = fileStreams.ToList();
         
         // Act
-        await Task.Run(() => cancellationSource.CancelAfter(2000), CancellationToken.None);
+        await Task.Run(() => cancellationSource.CancelAfter(1000), CancellationToken.None);
         await Task.Run(async () => await watcher.StartAsync(cancellationSource.Token), CancellationToken.None);
 
         // Assert
