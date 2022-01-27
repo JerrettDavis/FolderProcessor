@@ -1,5 +1,6 @@
 using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Stores;
+using FolderProcessor.Models.Processing;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,8 @@ public class ProcessFileRequest : IProcessFileRequest
 }
 
 [UsedImplicitly]
-public class ProcessFileRequestHandler : IRequestHandler<ProcessFileRequest>
+public class ProcessFileRequestHandler : 
+    IRequestHandler<ProcessFileRequest, IProcessFileResult>
 {
     private readonly IWorkingFileStore _fileStore;
     private readonly ICollection<IProcessor> _processors;
@@ -29,28 +31,37 @@ public class ProcessFileRequestHandler : IRequestHandler<ProcessFileRequest>
         _logger = logger;
     }
 
-    public async Task<Unit> Handle(
+    public async Task<IProcessFileResult> Handle(
         ProcessFileRequest request,
         CancellationToken cancellationToken)
     {
         var file = await _fileStore
             .GetAsync(request.FileId, cancellationToken)
             .ConfigureAwait(false);
+        
+        try
+        {
+            _logger.LogInformation("Firing up processors...");
+            
+            await _processors
+                .AsParallel()
+                .ToAsyncEnumerable()
+                .WhereAwaitWithCancellation(async (p, t) =>
+                    await p.AppliesAsync(file, t))
+                .ForEachAwaitWithCancellationAsync(async (p, t) =>
+                        await p.ProcessAsync(file, t),
+                    cancellationToken)
+                .ConfigureAwait(false);
 
-        _logger.LogInformation("Firing up processors...");
+            _logger.LogInformation("{File} has been processed", file);
 
-        await _processors
-            .AsParallel()
-            .ToAsyncEnumerable()
-            .WhereAwaitWithCancellation(async (p, t) =>
-                await p.AppliesAsync(file, t))
-            .ForEachAwaitWithCancellationAsync(async (p, t) =>
-                    await p.ProcessAsync(file, t),
-                cancellationToken)
-            .ConfigureAwait(false);
+            return new ProcessFileResult(file);
+        }
+        catch (AggregateException e)
+        {
+            var exceptions = e.Flatten().InnerExceptions;
 
-        _logger.LogInformation("{File} has been processed", file);
-
-        return Unit.Value;
+            return new ProcessFileResult(file, false, exceptions);
+        }
     }
 }

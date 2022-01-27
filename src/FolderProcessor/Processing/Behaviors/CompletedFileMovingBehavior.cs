@@ -3,9 +3,11 @@ using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
+using FolderProcessor.Models.Processing;
 using FolderProcessor.Models.Processing.Notifications;
 using JetBrains.Annotations;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Processing.Behaviors;
 
@@ -13,16 +15,14 @@ namespace FolderProcessor.Processing.Behaviors;
 /// This behavior moves files to the completed directory once they have completed
 /// successfully.
 /// </summary>
-/// <typeparam name="TRequest">The type of the request</typeparam>
-/// <typeparam name="TResponse">The type of the response</typeparam>
 [UsedImplicitly]
-public class CompletedFileMovingBehavior<TRequest, TResponse> : 
-    IPipelineBehavior<TRequest, TResponse> 
-    where TRequest : IRequest<TResponse>, IProcessFileRequest
+public class CompletedFileMovingBehavior : 
+    IPipelineBehavior<ProcessFileRequest, IProcessFileResult>
 {
     private readonly IWorkingFileStore _workingStore;
     private readonly ICompletedFileStore _completedStore;
     private readonly ICompletedDirectoryProvider _provider;
+    private readonly ILogger<CompletedFileMovingBehavior> _logger;
     private readonly IFileMover _fileMover;
     private readonly IPublisher _publisher;
 
@@ -31,43 +31,57 @@ public class CompletedFileMovingBehavior<TRequest, TResponse> :
         IFileMover fileMover, 
         ICompletedDirectoryProvider provider, 
         ICompletedFileStore completedStore, 
-        IPublisher publisher)
+        IPublisher publisher, 
+        ILogger<CompletedFileMovingBehavior> logger)
     {
         _workingStore = workingStore;
         _fileMover = fileMover;
         _provider = provider;
         _completedStore = completedStore;
         _publisher = publisher;
+        _logger = logger;
     }
 
-    public async Task<TResponse> Handle(
-        TRequest request, 
-        CancellationToken cancellationToken, 
-        RequestHandlerDelegate<TResponse> next)
+    public async Task<IProcessFileResult> Handle(
+        ProcessFileRequest request,
+        CancellationToken cancellationToken,
+        RequestHandlerDelegate<IProcessFileResult> next)
     {
         var result = await next();
-        
-        // Get the file and where to send it.
-        var file = new FileRecord(await _workingStore
-            .GetAsync(request.FileId, cancellationToken));
-        var destination = await _fileMover
-            .MoveFileAsync(file, _provider, cancellationToken);
+        if (!result.IsSuccessful)
+            return result;
 
-        // Remove it from seen and add it to working
-        var newFileLocation = file with {Path = destination};
-        
-        await Task.WhenAll(
-            _completedStore.AddAsync(
-                newFileLocation.Id,
-                newFileLocation,
-                cancellationToken),
-            _workingStore.RemoveAsync(
-                file.Id,
-                cancellationToken));
-        await _publisher.Publish(
-            new CompletedFileMovedNotification {FileRecord = newFileLocation},
-            cancellationToken);
+        try
+        {
+            // Get the file and where to send it.
+            var file = new FileRecord(await _workingStore
+                .GetAsync(request.FileId, cancellationToken));
+            var destination = await _fileMover
+                .MoveFileAsync(file, _provider, cancellationToken);
 
-        return result;
+            // Remove it from seen and add it to working
+            var newFileLocation = file with {Path = destination};
+
+            await Task.WhenAll(
+                _completedStore.AddAsync(
+                    newFileLocation.Id,
+                    newFileLocation,
+                    cancellationToken),
+                _workingStore.RemoveAsync(
+                    file.Id,
+                    cancellationToken));
+            await _publisher.Publish(
+                new CompletedFileMovedNotification {FileRecord = newFileLocation},
+                cancellationToken);
+
+            return new ProcessFileResult(newFileLocation);
+        }
+        catch (IOException ex)
+        {
+            _logger.LogError(ex, "Encountered an error trying to move {File}", request.FileId);
+
+            return result;
+        }
+        
     }
 }

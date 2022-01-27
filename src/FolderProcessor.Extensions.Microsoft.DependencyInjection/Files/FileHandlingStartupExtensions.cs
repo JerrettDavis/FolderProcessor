@@ -1,7 +1,9 @@
 using System.IO.Abstractions;
 using FolderProcessor.Abstractions.Monitoring.Filters;
+using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Monitoring.Filters;
+using FolderProcessor.Processing;
 using FolderProcessor.Processing.Behaviors;
 using FolderProcessor.Providers;
 using MediatR;
@@ -46,7 +48,9 @@ public static class FileHandlingStartupExtensions
         services
             .AddTransient<IWorkingDirectoryProvider>(s =>
                 new StaticWorkingDirectoryProvider(folder, s.GetService<IFileSystem>()!))
-            .AddTransient(typeof(IPipelineBehavior<,>), typeof(WorkingFileMovingBehavior<,>));
+            .AddTransient(
+                typeof(IPipelineBehavior<ProcessFileRequest, IProcessFileResult>), 
+                typeof(WorkingFileMovingBehavior));
     
     /// <summary>
     /// Adds a behavior to move all completed files to a specific folder.
@@ -60,7 +64,9 @@ public static class FileHandlingStartupExtensions
         services
             .AddTransient<ICompletedDirectoryProvider>(s =>
                 new StaticCompletedDirectoryProvider(folder, s.GetService<IFileSystem>()!))
-            .AddTransient(typeof(IPipelineBehavior<,>), typeof(CompletedFileMovingBehavior<,>));
+            .AddTransient(
+                typeof(IPipelineBehavior<ProcessFileRequest, IProcessFileResult>), 
+                typeof(CompletedFileMovingBehavior));
 
     /// <summary>
     /// Adds a behavior to move all files that encounter an error to a specific folder.
@@ -74,5 +80,7 @@ public static class FileHandlingStartupExtensions
         services
             .AddTransient<IErroredDirectoryProvider>(s =>
                 new StaticErroredDirectoryProvider(folder, s.GetService<IFileSystem>()!))
-            .AddTransient(typeof(IPipelineBehavior<,>), typeof(ErroredFileMovingBehavior<,>));
+            .AddTransient(
+                typeof(IPipelineBehavior<ProcessFileRequest, IProcessFileResult>), 
+                typeof(ErroredFileMovingBehavior));
 }

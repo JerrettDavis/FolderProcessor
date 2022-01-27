@@ -1,3 +1,4 @@
+using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Models.Processing.Notifications;
 using JetBrains.Annotations;
 using MediatR;
@@ -24,10 +25,22 @@ public class FileNeedsProcessingNotificationHandler :
         FileNeedsProcessingNotification notification, 
         CancellationToken cancellationToken)
     {
-        _logger.LogDebug("{File} needs processing...", notification.File);
+        try
+        {
+            _logger.LogDebug("{File} needs processing...", notification.File);
 
-        return _mediator.Send(
-            new ProcessFileRequest {FileId = notification.File.Id}, 
-            cancellationToken);
+            return _mediator.Send(
+                (IProcessFileRequest) new ProcessFileRequest {FileId = notification.File.Id}, 
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex, 
+                "There was an error while processing the file {File}...", 
+                notification.File);
+        }
+        
+        return Task.CompletedTask;
     }
 }

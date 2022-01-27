@@ -21,20 +21,21 @@ public abstract class Store<TKey, TType> : IStore<TKey, TType>
             throw new AddToStoreException(key, item);
     }
 
-    public virtual async Task AddAsync(
+    public virtual Task AddAsync(
         TKey key,
         TType item,
-        CancellationToken cancellationToken = default) =>
-        await Task.Run(() => Add(key, item), cancellationToken)
-            .ConfigureAwait(false);
+        CancellationToken cancellationToken = default)
+    {
+        Add(key, item);
+        return Task.CompletedTask;
+    }
 
     public virtual  bool Contains(TKey key) => Dictionary.ContainsKey(key);
 
-    public virtual async Task<bool> ContainsAsync(
+    public virtual Task<bool> ContainsAsync(
         TKey key,
         CancellationToken cancellationToken = default) =>
-        await Task.Run(() => Contains(key), cancellationToken)
-            .ConfigureAwait(false);
+        Task.FromResult(Contains(key));
 
     public virtual  TType Get(TKey key)
     {
@@ -44,10 +45,10 @@ public abstract class Store<TKey, TType> : IStore<TKey, TType>
         return item;
     }
 
-    public virtual async Task<TType> GetAsync(
+    public virtual Task<TType> GetAsync(
         TKey key,
         CancellationToken cancellationToken = default) =>
-        await Task.Run(() => Get(key), cancellationToken).ConfigureAwait(false);
+        Task.FromResult(Get(key));
 
     public virtual void Remove(TKey key)
     {
@@ -55,9 +56,12 @@ public abstract class Store<TKey, TType> : IStore<TKey, TType>
             throw new RemoveFromStoreException(key);
     }
 
-    public virtual async Task RemoveAsync(
+    public virtual Task RemoveAsync(
         TKey key,
-        CancellationToken cancellationToken = default) =>
-        await Task.Run(() => Remove(key), cancellationToken)
-            .ConfigureAwait(false);
+        CancellationToken cancellationToken = default)
+    {
+        Remove(key);
+        
+        return Task.CompletedTask;
+    }
 }

@@ -12,7 +12,6 @@ using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Monitoring.Streams;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using FolderProcessor.UnitTests.Setup.Customizations;
-using MediatR;
 using Xunit;
 
 namespace FolderProcessor.UnitTests.Monitoring.Streams;

@@ -12,12 +12,9 @@ namespace FolderProcessor.Processing.Behaviors;
 /// This behaviors moves files to a dedicated working directory before running
 /// the process file request.
 /// </summary>
-/// <typeparam name="TRequest">The type of the request</typeparam>
-/// <typeparam name="TResponse">the type of the response</typeparam>
 [UsedImplicitly]
-public class WorkingFileMovingBehavior<TRequest, TResponse> : 
-    IPipelineBehavior<TRequest, TResponse> 
-    where TRequest : IRequest<TResponse>, IProcessFileRequest
+public class WorkingFileMovingBehavior: 
+    IPipelineBehavior<ProcessFileRequest, IProcessFileResult>
 {
     private readonly IWorkingFileStore _workingFileStore;
     private readonly ISeenFileStore _seenFileStore;
@@ -36,10 +33,10 @@ public class WorkingFileMovingBehavior<TRequest, TResponse> :
         _fileMover = fileMover;
     }
 
-    public async Task<TResponse> Handle(
-        TRequest request, 
-        CancellationToken cancellationToken, 
-        RequestHandlerDelegate<TResponse> next)
+    public async Task<IProcessFileResult> Handle(
+        ProcessFileRequest request,
+        CancellationToken cancellationToken,
+        RequestHandlerDelegate<IProcessFileResult> next)
     {
         // Get the file and where to send it.
         var file = new FileRecord(await _seenFileStore

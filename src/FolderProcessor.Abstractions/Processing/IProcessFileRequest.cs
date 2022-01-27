@@ -7,7 +7,7 @@ namespace FolderProcessor.Abstractions.Processing;
 /// A request denoting the ID of a file that needs processing
 /// </summary>
 [PublicAPI]
-public interface IProcessFileRequest : IRequest
+public interface IProcessFileRequest : IRequest<IProcessFileResult>
 {
     /// <summary>
     /// The ID of the file to process

@@ -3,6 +3,7 @@ using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
+using FolderProcessor.Models.Processing;
 using FolderProcessor.Models.Processing.Notifications;
 using JetBrains.Annotations;
 using MediatR;
@@ -14,26 +15,23 @@ namespace FolderProcessor.Processing.Behaviors;
 /// This behavior monitors the process request for any errors. If an unhandled
 /// exception occurs, the file is moved to the error directory.
 /// </summary>
-/// <typeparam name="TRequest">The type of the request</typeparam>
-/// <typeparam name="TResponse">The type of the response</typeparam>
 [UsedImplicitly]
-public class ErroredFileMovingBehavior<TRequest, TResponse> : 
-    IPipelineBehavior<TRequest, TResponse> 
-    where TRequest : IRequest<TResponse>, IProcessFileRequest
+public class ErroredFileMovingBehavior :
+    IPipelineBehavior<ProcessFileRequest, IProcessFileResult>
 {
     private readonly IWorkingFileStore _workingStore;
     private readonly IErroredFileStore _erroredStore;
     private readonly IErroredDirectoryProvider _provider;
     private readonly IFileMover _fileMover;
-    private readonly ILogger<ErroredFileMovingBehavior<TRequest, TResponse>> _logger;
+    private readonly ILogger<ErroredFileMovingBehavior> _logger;
     private readonly IPublisher _publisher;
 
     public ErroredFileMovingBehavior(
-        IWorkingFileStore workingStore, 
-        IErroredFileStore erroredStore, 
-        IFileMover fileMover, 
-        ILogger<ErroredFileMovingBehavior<TRequest, TResponse>> logger, 
-        IPublisher publisher, 
+        IWorkingFileStore workingStore,
+        IErroredFileStore erroredStore,
+        IFileMover fileMover,
+        ILogger<ErroredFileMovingBehavior> logger,
+        IPublisher publisher,
         IErroredDirectoryProvider provider)
     {
         _workingStore = workingStore;
@@ -44,16 +42,16 @@ public class ErroredFileMovingBehavior<TRequest, TResponse> :
         _provider = provider;
     }
 
-    public async Task<TResponse> Handle(
-        TRequest request, 
-        CancellationToken cancellationToken, 
-        RequestHandlerDelegate<TResponse> next)
+    public async Task<IProcessFileResult> Handle(
+        ProcessFileRequest request,
+        CancellationToken cancellationToken,
+        RequestHandlerDelegate<IProcessFileResult> next)
     {
+        var result = await next();
+        if (result.IsSuccessful)
+            return result;
+        
         try
-        {
-            return await next();
-        }
-        catch (Exception ex)
         {
             // Get the file and where to send it.
             var file = new FileRecord(await _workingStore
@@ -63,7 +61,7 @@ public class ErroredFileMovingBehavior<TRequest, TResponse> :
 
             // Remove it from seen and add it to working
             var newFileLocation = file with {Path = destination};
-        
+
             await Task.WhenAll(
                 _erroredStore.AddAsync(
                     newFileLocation.Id,
@@ -75,10 +73,20 @@ public class ErroredFileMovingBehavior<TRequest, TResponse> :
             await _publisher.Publish(
                 new ErroredFileMovedNotification {FileRecord = newFileLocation},
                 cancellationToken);
-            
-            _logger.LogError(ex, "An error occurred while processing {File}.", file);
-            
-            throw; 
+
+            _logger.LogError("Moved errored {File} to {Destination}.", file, destination);
+
+            return new ProcessFileResult(newFileLocation, false, result.Errors);
         }
+        catch (IOException ex)
+        {
+            _logger.LogError(ex, "Encountered an error trying to move {File}", request.FileId);
+            
+            var newErrors = result.Errors.ToList();
+            newErrors.Add(ex);
+            
+            return new ProcessFileResult(result.FileRecord, false, newErrors);
+        }
+
     }
 }

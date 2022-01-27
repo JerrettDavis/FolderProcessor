@@ -8,6 +8,7 @@ using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
+using FolderProcessor.Models.Processing;
 using FolderProcessor.Processing;
 using FolderProcessor.Processing.Behaviors;
 using FolderProcessor.UnitTests.Setup.Attributes;
@@ -24,10 +25,13 @@ public class CompletedFileMovingBehaviorTests
         [Frozen] ICompletedFileStore completedFileStore,
         [Frozen] IWorkingFileStore workingFileStore,
         [Frozen] Mock<IFileMover> fileMover,
+        [Frozen] Mock<IRequestHandler<IProcessFileRequest, IProcessFileResult>> handler, 
         FileRecord record,
-        CompletedFileMovingBehavior<IProcessFileRequest, Unit> behavior) 
+        CompletedFileMovingBehavior behavior) 
     {
         // Arrange
+        handler.Setup(h => h.Handle(It.IsAny<IProcessFileRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ProcessFileResult(record));
         await workingFileStore.AddAsync(record.Id, record);
         
         var request = new ProcessFileRequest {FileId = record.Id};
@@ -40,7 +44,8 @@ public class CompletedFileMovingBehaviorTests
             .ReturnsAsync(newName);
 
         // Act
-        await behavior.Handle(request, CancellationToken.None, () => Unit.Task);
+        await behavior.Handle(request, CancellationToken.None, 
+            () => handler.Object.Handle(request, CancellationToken.None));
         var newFile = await completedFileStore.GetAsync(record.Id, CancellationToken.None);
         
         // Assert
