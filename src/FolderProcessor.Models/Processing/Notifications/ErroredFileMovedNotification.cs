@@ -1,6 +1,6 @@
+using FolderProcessor.Abstractions.Common;
 using FolderProcessor.Abstractions.Files;
 using JetBrains.Annotations;
-using MediatR;
 
 namespace FolderProcessor.Models.Processing.Notifications;
 
@@ -9,7 +9,7 @@ namespace FolderProcessor.Models.Processing.Notifications;
 /// has been successfully moved to the 'errored' directory.
 /// </summary>
 [PublicAPI]
-public class ErroredFileMovedNotification : INotification
+public class ErroredFileMovedNotification : IDomainEvent
 {
     /// <summary>
     /// Information about the moved file.

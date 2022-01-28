@@ -1,7 +1,7 @@
+using FolderProcessor.Abstractions.Common;
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using JetBrains.Annotations;
-using MediatR;
 
 namespace FolderProcessor.Models.Monitoring.Notifications;
 
@@ -10,7 +10,7 @@ namespace FolderProcessor.Models.Monitoring.Notifications;
 /// new file for the first time.
 /// </summary>
 [PublicAPI]
-public class FileSeenNotification : INotification
+public class FileSeenNotification : IDomainEvent
 {
     /// <summary>
     /// Information about the seen file.

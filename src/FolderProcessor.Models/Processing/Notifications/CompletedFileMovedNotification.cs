@@ -1,6 +1,6 @@
+using FolderProcessor.Abstractions.Common;
 using FolderProcessor.Abstractions.Files;
 using JetBrains.Annotations;
-using MediatR;
 
 namespace FolderProcessor.Models.Processing.Notifications;
 
@@ -9,7 +9,7 @@ namespace FolderProcessor.Models.Processing.Notifications;
 /// 'completed' directory. 
 /// </summary>
 [PublicAPI]
-public class CompletedFileMovedNotification : INotification
+public class CompletedFileMovedNotification : IDomainEvent
 {
     /// <summary>
     /// Information about the file

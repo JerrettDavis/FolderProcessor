@@ -1,5 +1,6 @@
 using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Processing;
+using FolderProcessor.Abstractions.Processing.Behaviors;
 using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
@@ -14,7 +15,7 @@ namespace FolderProcessor.Processing.Behaviors;
 /// </summary>
 [UsedImplicitly]
 public class WorkingFileMovingBehavior: 
-    IPipelineBehavior<ProcessFileRequest, IProcessFileResult>
+    IProcessingBehavior<ProcessFileRequest>
 {
     private readonly IWorkingFileStore _workingFileStore;
     private readonly ISeenFileStore _seenFileStore;

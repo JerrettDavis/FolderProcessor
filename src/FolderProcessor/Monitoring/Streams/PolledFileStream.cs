@@ -4,7 +4,6 @@ using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Common.Utilities;
 using JetBrains.Annotations;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Monitoring.Streams;
@@ -30,7 +29,7 @@ public class PolledFileStream : IFileStream
 /// </summary>
 [UsedImplicitly]
 public class PolledFileStreamHandler : 
-    IStreamRequestHandler<PolledFileStream, IFileRecord>
+    IFileStreamHandler<PolledFileStream>
 {
     private readonly ISeenFileStore _seenFileStore;
     private readonly IFileSystem _fileSystem;

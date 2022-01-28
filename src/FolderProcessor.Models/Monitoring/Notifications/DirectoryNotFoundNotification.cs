@@ -1,5 +1,5 @@
+using FolderProcessor.Abstractions.Common;
 using JetBrains.Annotations;
-using MediatR;
 
 namespace FolderProcessor.Models.Monitoring.Notifications;
 
@@ -8,7 +8,7 @@ namespace FolderProcessor.Models.Monitoring.Notifications;
 /// found. This can happen if the directory is deleted after watcher initialization.
 /// </summary>
 [PublicAPI]
-public class DirectoryNotFoundNotification : INotification
+public class DirectoryNotFoundNotification : IDomainEvent
 {
     /// <summary>
     /// The path of the directory

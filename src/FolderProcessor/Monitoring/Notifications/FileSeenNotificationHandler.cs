@@ -1,3 +1,4 @@
+using FolderProcessor.Abstractions.Common;
 using FolderProcessor.Models.Monitoring.Notifications;
 using JetBrains.Annotations;
 using MediatR;
@@ -11,7 +12,7 @@ namespace FolderProcessor.Monitoring.Notifications;
 /// </summary>
 [UsedImplicitly]
 public class FileSeenNotificationHandler : 
-    INotificationHandler<FileSeenNotification>
+    IDomainEventHandler<FileSeenNotification>
 {
     private readonly ILogger<FileSeenNotificationHandler> _logger;
 

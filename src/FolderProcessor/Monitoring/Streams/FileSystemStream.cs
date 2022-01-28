@@ -4,7 +4,6 @@ using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Abstractions.Stores;
 using JetBrains.Annotations;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Monitoring.Streams;
@@ -25,7 +24,7 @@ public class FileSystemStream : IFileStream
 /// </summary>
 [UsedImplicitly]
 public class FileSystemStreamHandler : 
-    IStreamRequestHandler<FileSystemStream, IFileRecord>
+    IFileStreamHandler<FileSystemStream>
 {
     private readonly ISeenFileStore _seenFileStore;
     private readonly ILogger<FileSystemStreamHandler> _logger;
