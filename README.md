@@ -8,7 +8,7 @@ An unambitious, hostable, extensible, and reusable folder monitoring and file pr
 
 ## What is FolderProcessor
 
-FolderProcessor is a two-part framework that aims to make building routing file
+FolderProcessor is a two-part framework that aims to make building file
 processing applications a bit easier. It accomplishes this by giving you a flexible, 
 easy-to-use pattern that you can apply over and over to your various processing 
 needs. At it's core, FolderProcessor consists of two main domains: `Monitoring` and `Processing`.
