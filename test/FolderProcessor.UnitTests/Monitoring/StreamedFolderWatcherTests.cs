@@ -3,12 +3,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture.Xunit2;
+using FolderProcessor.Abstractions.Mediator;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Models.Processing.Notifications;
 using FolderProcessor.Monitoring;
 using FolderProcessor.UnitTests.Setup.Attributes;
 using FolderProcessor.UnitTests.Setup.Customizations;
-using MediatR;
 using Moq;
 using Xunit;
 

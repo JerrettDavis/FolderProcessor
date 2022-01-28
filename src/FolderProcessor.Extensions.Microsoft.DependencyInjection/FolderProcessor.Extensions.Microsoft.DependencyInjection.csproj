@@ -25,6 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\FolderProcessor.Mediator\FolderProcessor.Mediator.csproj" />
       <ProjectReference Include="..\FolderProcessor\FolderProcessor.csproj" />
     </ItemGroup>
 

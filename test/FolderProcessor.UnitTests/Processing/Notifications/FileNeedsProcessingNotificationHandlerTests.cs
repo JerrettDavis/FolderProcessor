@@ -1,12 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture.Xunit2;
+using FolderProcessor.Abstractions.Mediator;
 using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Processing.Notifications;
 using FolderProcessor.Processing;
 using FolderProcessor.Processing.Notifications;
 using FolderProcessor.UnitTests.Setup.Attributes;
-using MediatR;
 using Moq;
 using Xunit;
 

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoFixture.Xunit2;
 using FluentAssertions;
 using FolderProcessor.Abstractions.Files;
+using FolderProcessor.Abstractions.Mediator;
 using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
@@ -13,7 +14,6 @@ using FolderProcessor.Models.Processing;
 using FolderProcessor.Processing;
 using FolderProcessor.Processing.Behaviors;
 using FolderProcessor.UnitTests.Setup.Attributes;
-using MediatR;
 using Moq;
 using Xunit;
 
@@ -53,8 +53,4 @@ public class WorkingFileMovingBehaviorTests
         (await workingFileStore.ContainsAsync(record.Id)).Should().BeTrue();
         newFile.Path.Should().Be(newName);
     }
-}
-
-public class WorkingFileMovingBehavior<T>
-{
 }

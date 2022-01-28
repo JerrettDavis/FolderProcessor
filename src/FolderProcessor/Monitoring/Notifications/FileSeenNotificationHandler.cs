@@ -1,7 +1,6 @@
 using FolderProcessor.Abstractions.Common;
 using FolderProcessor.Models.Monitoring.Notifications;
 using JetBrains.Annotations;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Monitoring.Notifications;

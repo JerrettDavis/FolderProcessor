@@ -2,6 +2,7 @@ using System.IO.Abstractions;
 using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Providers;
+using FolderProcessor.Mediator.Processing;
 using FolderProcessor.Monitoring.Filters;
 using FolderProcessor.Processing;
 using FolderProcessor.Processing.Behaviors;
@@ -49,7 +50,7 @@ public static class FileHandlingStartupExtensions
             .AddTransient<IWorkingDirectoryProvider>(s =>
                 new StaticWorkingDirectoryProvider(folder, s.GetService<IFileSystem>()!))
             .AddTransient(
-                typeof(IPipelineBehavior<ProcessFileRequest, IProcessFileResult>), 
+                typeof(IPipelineBehavior<ProcessFileRequestFacade, IProcessFileResult>), 
                 typeof(WorkingFileMovingBehavior));
     
     /// <summary>
@@ -65,7 +66,7 @@ public static class FileHandlingStartupExtensions
             .AddTransient<ICompletedDirectoryProvider>(s =>
                 new StaticCompletedDirectoryProvider(folder, s.GetService<IFileSystem>()!))
             .AddTransient(
-                typeof(IPipelineBehavior<ProcessFileRequest, IProcessFileResult>), 
+                typeof(IPipelineBehavior<ProcessFileRequestFacade, IProcessFileResult>), 
                 typeof(CompletedFileMovingBehavior));
 
     /// <summary>
@@ -81,6 +82,6 @@ public static class FileHandlingStartupExtensions
             .AddTransient<IErroredDirectoryProvider>(s =>
                 new StaticErroredDirectoryProvider(folder, s.GetService<IFileSystem>()!))
             .AddTransient(
-                typeof(IPipelineBehavior<ProcessFileRequest, IProcessFileResult>), 
+                typeof(IPipelineBehavior<ProcessFileRequestFacade, IProcessFileResult>), 
                 typeof(ErroredFileMovingBehavior));
 }

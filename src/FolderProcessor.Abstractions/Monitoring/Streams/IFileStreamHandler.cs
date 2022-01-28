@@ -1,9 +1,9 @@
 using FolderProcessor.Abstractions.Files;
-using MediatR;
+using FolderProcessor.Abstractions.Mediator;
 
 namespace FolderProcessor.Abstractions.Monitoring.Streams;
 
-public interface IFileStreamHandler<in TStreamType> : 
+public interface IFileStreamHandler<in TStreamType> :
     IStreamRequestHandler<TStreamType, IFileRecord> 
     where TStreamType : IFileStream
 {

@@ -1,6 +1,6 @@
 using FolderProcessor.Abstractions.Files;
+using FolderProcessor.Abstractions.Mediator;
 using JetBrains.Annotations;
-using MediatR;
 
 namespace FolderProcessor.Abstractions.Monitoring.Streams;
 

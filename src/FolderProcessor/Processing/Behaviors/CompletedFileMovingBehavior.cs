@@ -1,4 +1,5 @@
 using FolderProcessor.Abstractions.Files;
+using FolderProcessor.Abstractions.Mediator;
 using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Processing.Behaviors;
 using FolderProcessor.Abstractions.Providers;
@@ -7,7 +8,6 @@ using FolderProcessor.Models.Files;
 using FolderProcessor.Models.Processing;
 using FolderProcessor.Models.Processing.Notifications;
 using JetBrains.Annotations;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Processing.Behaviors;
@@ -46,7 +46,7 @@ public class CompletedFileMovingBehavior :
     public async Task<IProcessFileResult> Handle(
         ProcessFileRequest request,
         CancellationToken cancellationToken,
-        RequestHandlerDelegate<IProcessFileResult> next)
+        RequestHandlerDelegate next)
     {
         var result = await next();
         if (!result.IsSuccessful)

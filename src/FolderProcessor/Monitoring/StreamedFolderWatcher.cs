@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
 using FolderProcessor.Abstractions;
 using FolderProcessor.Abstractions.Files;
+using FolderProcessor.Abstractions.Mediator;
 using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Models.Processing.Notifications;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Monitoring;

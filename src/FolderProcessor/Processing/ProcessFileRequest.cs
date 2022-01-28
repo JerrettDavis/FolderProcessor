@@ -1,8 +1,8 @@
+using FolderProcessor.Abstractions.Mediator;
 using FolderProcessor.Abstractions.Processing;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Processing;
 using JetBrains.Annotations;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FolderProcessor.Processing;
@@ -14,7 +14,7 @@ public class ProcessFileRequest : IProcessFileRequest
 }
 
 [UsedImplicitly]
-public class ProcessFileRequestHandler : 
+public class ProcessFileRequestHandler :
     IRequestHandler<ProcessFileRequest, IProcessFileResult>
 {
     private readonly IWorkingFileStore _fileStore;
@@ -38,11 +38,11 @@ public class ProcessFileRequestHandler :
         var file = await _fileStore
             .GetAsync(request.FileId, cancellationToken)
             .ConfigureAwait(false);
-        
+
         try
         {
             _logger.LogInformation("Firing up processors...");
-            
+
             await _processors
                 .AsParallel()
                 .ToAsyncEnumerable()

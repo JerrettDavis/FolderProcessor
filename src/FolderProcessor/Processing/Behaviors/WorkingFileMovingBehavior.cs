@@ -5,7 +5,6 @@ using FolderProcessor.Abstractions.Providers;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Models.Files;
 using JetBrains.Annotations;
-using MediatR;
 
 namespace FolderProcessor.Processing.Behaviors;
 
@@ -37,7 +36,7 @@ public class WorkingFileMovingBehavior:
     public async Task<IProcessFileResult> Handle(
         ProcessFileRequest request,
         CancellationToken cancellationToken,
-        RequestHandlerDelegate<IProcessFileResult> next)
+        RequestHandlerDelegate next)
     {
         // Get the file and where to send it.
         var file = new FileRecord(await _seenFileStore

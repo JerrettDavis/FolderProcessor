@@ -1,5 +1,6 @@
+using FolderProcessor.Abstractions.Common;
+using FolderProcessor.Abstractions.Mediator;
 using JetBrains.Annotations;
-using MediatR;
 
 namespace FolderProcessor.Abstractions.Processing;
 

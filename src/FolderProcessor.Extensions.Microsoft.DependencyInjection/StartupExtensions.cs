@@ -4,6 +4,7 @@ using FolderProcessor.Abstractions.Files;
 using FolderProcessor.Abstractions.Stores;
 using FolderProcessor.Extensions.Microsoft.DependencyInjection.Monitoring;
 using FolderProcessor.Files;
+using FolderProcessor.Mediator;
 using FolderProcessor.Monitoring;
 using FolderProcessor.Stores;
 using JetBrains.Annotations;
@@ -37,6 +38,15 @@ public static class StartupExtensions
         {
             var watcher = provider.GetRequiredService<StreamedFolderWatcher>();
             return new FolderProcessorHostedService(watcher, false);
+        }
+
+        var types = Locator.GetInternalMediatorImplementations();
+        foreach (var type in types.Keys)
+        {
+            foreach (var subtype in types[type])
+            {
+                services.AddScoped(type, subtype);
+            }
         }
 
         return services

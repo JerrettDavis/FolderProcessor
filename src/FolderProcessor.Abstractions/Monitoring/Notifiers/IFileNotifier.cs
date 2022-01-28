@@ -1,8 +1,6 @@
-using MediatR;
-
 namespace FolderProcessor.Abstractions.Monitoring.Notifiers;
 
-public interface IFileNotifier : IRequest
+public interface IFileNotifier
 {
     /// <summary>
     /// The folder to monitor.

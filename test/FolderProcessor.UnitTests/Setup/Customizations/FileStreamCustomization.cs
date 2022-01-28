@@ -9,10 +9,10 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using AutoFixture;
 using FolderProcessor.Abstractions.Files;
+using FolderProcessor.Abstractions.Mediator;
 using FolderProcessor.Abstractions.Monitoring.Filters;
 using FolderProcessor.Abstractions.Monitoring.Streams;
 using FolderProcessor.Models.Files;
-using MediatR;
 using Moq;
 
 namespace FolderProcessor.UnitTests.Setup.Customizations;
@@ -22,7 +22,7 @@ public class FileStreamCustomization : ICustomization
     public void Customize(IFixture fixture)
     {
         fixture.Register<IFileStream>(MockFileStream.Create);
-        fixture.Register<IStreamRequestHandler<IFileStream, IFileRecord>>(MockFileStreamHandler.Create);
+        fixture.Register<IFileStreamHandler<IFileStream>>(MockFileStreamHandler.Create);
         var filter = fixture.Freeze<Mock<IFileFilter>>();
 
         filter.Setup(f => f.IsValid(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -79,7 +79,7 @@ public class MockFileStream : IFileStream
 }
 
 public class MockFileStreamHandler : 
-    IStreamRequestHandler<IFileStream, IFileRecord>
+    IFileStreamHandler<IFileStream>
 {
     private static readonly MockFileStreamHandler Global = new();
     private static readonly ConcurrentDictionary<string, Channel<IFileRecord>> MockHandlers = new();
