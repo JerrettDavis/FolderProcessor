@@ -36,8 +36,8 @@ public class WorkingFileMovingBehavior:
 
     public async Task<IProcessFileResult> Handle(
         ProcessFileRequest request,
-        CancellationToken cancellationToken,
-        RequestHandlerDelegate<IProcessFileResult> next)
+        RequestHandlerDelegate<IProcessFileResult> next,
+        CancellationToken cancellationToken)
     {
         // Get the file and where to send it.
         var file = new FileRecord(await _seenFileStore
@@ -56,6 +56,6 @@ public class WorkingFileMovingBehavior:
                 file.Id,
                 cancellationToken));
 
-        return await next();
+        return await next(cancellationToken);
     }
 }

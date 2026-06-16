@@ -45,6 +45,7 @@ public class FileSystemWatcherFactoryMock : IFileSystemWatcherFactory
 {
     private Mock<IFileSystemWatcher>? _fileSystemMock;
     private readonly MockFileSystem _parent;
+    public IFileSystem FileSystem => _parent;
 
     public FileSystemWatcherFactoryMock(MockFileSystem parent)
     {
@@ -70,21 +71,28 @@ public class FileSystemWatcherFactoryMock : IFileSystemWatcherFactory
             new FileSystemEventArgs(WatcherChangeTypes.Created, dir!, file));
     }
 
-    public IFileSystemWatcher CreateNew()
+    public IFileSystemWatcher New()
     {
         _fileSystemMock = new Mock<IFileSystemWatcher>();
 
         return _fileSystemMock.Object;
     }
 
-    public IFileSystemWatcher CreateNew(string path)
+    public IFileSystemWatcher New(string path)
     {
         _fileSystemMock = new Mock<IFileSystemWatcher>();
 
         return _fileSystemMock.Object;
     }
 
-    public IFileSystemWatcher CreateNew(string path, string filter)
+    public IFileSystemWatcher New(string path, string filter)
+    {
+        _fileSystemMock = new Mock<IFileSystemWatcher>();
+
+        return _fileSystemMock.Object;
+    }
+
+    public IFileSystemWatcher Wrap(FileSystemWatcher? fileSystemWatcher)
     {
         _fileSystemMock = new Mock<IFileSystemWatcher>();
 

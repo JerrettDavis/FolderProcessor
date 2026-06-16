@@ -44,8 +44,10 @@ public class ErroredFileMovingBehaviorTests
             .ReturnsAsync(newName);
 
         // Act
-        await behavior.Handle(request, CancellationToken.None, 
-            () => handler.Object.Handle(request, CancellationToken.None));
+        await behavior.Handle(
+            request,
+            ct => handler.Object.Handle(request, ct),
+            CancellationToken.None);
         
         var newFile = await erroredFileStore.GetAsync(record.Id, CancellationToken.None);
         
@@ -70,8 +72,10 @@ public class ErroredFileMovingBehaviorTests
         var request = new ProcessFileRequest {FileId = record.Id};
         
         // Act
-        await behavior.Handle(request, CancellationToken.None, 
-            () => handler.Object.Handle(request, CancellationToken.None));
+        await behavior.Handle(
+            request,
+            ct => handler.Object.Handle(request, ct),
+            CancellationToken.None);
         
         var sameFile = await workingFileStore.GetAsync(record.Id, CancellationToken.None);
         

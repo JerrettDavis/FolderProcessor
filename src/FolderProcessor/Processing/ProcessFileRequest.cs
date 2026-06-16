@@ -43,15 +43,20 @@ public class ProcessFileRequestHandler :
         {
             _logger.LogInformation("Firing up processors...");
             
-            await _processors
+            var applicableProcessors = _processors
                 .AsParallel()
                 .ToAsyncEnumerable()
-                .WhereAwaitWithCancellation(async (p, t) =>
-                    await p.AppliesAsync(file, t))
-                .ForEachAwaitWithCancellationAsync(async (p, t) =>
-                        await p.ProcessAsync(file, t),
-                    cancellationToken)
-                .ConfigureAwait(false);
+                .Where(async (p, t) =>
+                    await p.AppliesAsync(file, t));
+
+            await foreach (var processor in applicableProcessors
+                               .WithCancellation(cancellationToken)
+                               .ConfigureAwait(false))
+            {
+                await processor
+                    .ProcessAsync(file, cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
             _logger.LogInformation("{File} has been processed", file);
 

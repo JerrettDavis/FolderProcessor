@@ -44,8 +44,10 @@ public class CompletedFileMovingBehaviorTests
             .ReturnsAsync(newName);
 
         // Act
-        await behavior.Handle(request, CancellationToken.None, 
-            () => handler.Object.Handle(request, CancellationToken.None));
+        await behavior.Handle(
+            request,
+            ct => handler.Object.Handle(request, ct),
+            CancellationToken.None);
         var newFile = await completedFileStore.GetAsync(record.Id, CancellationToken.None);
         
         // Assert
@@ -70,8 +72,10 @@ public class CompletedFileMovingBehaviorTests
         var request = new ProcessFileRequest {FileId = record.Id};
 
         // Act
-        await behavior.Handle(request, CancellationToken.None, 
-            () => handler.Object.Handle(request, CancellationToken.None));
+        await behavior.Handle(
+            request,
+            ct => handler.Object.Handle(request, ct),
+            CancellationToken.None);
         var sameFile = await workingFileStore.GetAsync(record.Id, CancellationToken.None);
         
         // Assert

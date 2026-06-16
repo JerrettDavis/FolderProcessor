@@ -45,10 +45,10 @@ public class ErroredFileMovingBehavior :
 
     public async Task<IProcessFileResult> Handle(
         ProcessFileRequest request,
-        CancellationToken cancellationToken,
-        RequestHandlerDelegate<IProcessFileResult> next)
+        RequestHandlerDelegate<IProcessFileResult> next,
+        CancellationToken cancellationToken)
     {
-        var result = await next();
+        var result = await next(cancellationToken);
         if (result.IsSuccessful)
             return result;
         

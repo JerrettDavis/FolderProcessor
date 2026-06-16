@@ -48,17 +48,17 @@ public class FileSystemStreamHandler :
         var watcher = SetupWatcher(request.Folder);
 
         return EventToAsyncEnumerable(watcher, cancellationToken)
-            .WhereAwaitWithCancellation(async (f,t) => 
+            .Where(async (f,t) => 
                 !await _seenFileStore
                     .ContainsPathAsync(f, t))
             .Select(_seenFileStore.AddFileRecord)
-            .WhereAwaitWithCancellation(async (f,t) => 
+            .Where(async (f,t) => 
                 !await IsDirectory(f.Id, f.Path, t));
     }
     
     private IFileSystemWatcher SetupWatcher(string folder)
     {
-        var watcher = _fileSystem.FileSystemWatcher.CreateNew(folder);
+        var watcher = _fileSystem.FileSystemWatcher.New(folder);
         watcher.NotifyFilter = NotifyFilters.Attributes
                                 | NotifyFilters.CreationTime
                                 | NotifyFilters.DirectoryName

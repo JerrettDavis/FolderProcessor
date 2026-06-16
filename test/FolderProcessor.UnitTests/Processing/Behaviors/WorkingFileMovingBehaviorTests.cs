@@ -45,8 +45,10 @@ public class WorkingFileMovingBehaviorTests
             .ReturnsAsync(newName);
 
         // Act
-        await behavior.Handle(request, CancellationToken.None, 
-            () => handler.Object.Handle(request, CancellationToken.None));
+        await behavior.Handle(
+            request,
+            ct => handler.Object.Handle(request, ct),
+            CancellationToken.None);
         var newFile = await workingFileStore.GetAsync(record.Id, CancellationToken.None);
         
         // Assert
