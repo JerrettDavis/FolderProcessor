@@ -1,7 +1,7 @@
-FROM mcr.microsoft.com/dotnet/runtime:10.0.13 AS base
+FROM mcr.microsoft.com/dotnet/runtime:10.0.14 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0.402 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.403 AS build
 WORKDIR /src
 COPY ["src/FolderProcessor.Host/FolderProcessor.Host.csproj", "FolderProcessor.Host/"]
 RUN dotnet restore "src/FolderProcessor.Host/FolderProcessor.Host.csproj"
