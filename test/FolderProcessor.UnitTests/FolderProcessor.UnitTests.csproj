@@ -27,6 +27,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\FolderProcessor\FolderProcessor.csproj" />
+      <ProjectReference Include="..\..\src\FolderProcessor.Extensions.Microsoft.DependencyInjection\FolderProcessor.Extensions.Microsoft.DependencyInjection.csproj" />
     </ItemGroup>
 
     <ItemGroup>

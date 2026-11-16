@@ -40,7 +40,7 @@ public static class StartupExtensions
         }
 
         return services
-            .AddMediatR(ass)
+            .AddMediatR(config => config.RegisterServicesFromAssemblies(ass))
             .AddSingleton<IFileSystem, FileSystem>()
             .AddSingleton<ISeenFileStore, SeenFileStore>()
             .AddSingleton<IWorkingFileStore, WorkingFileStore>()
