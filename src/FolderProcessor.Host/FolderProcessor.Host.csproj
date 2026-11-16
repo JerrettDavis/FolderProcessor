@@ -12,8 +12,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MediatR" Version="14.3.0" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+        <PackageReference Include="MediatR" Version="15.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="11.0.0" />
     </ItemGroup>
 
     <ItemGroup>
