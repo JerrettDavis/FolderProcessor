@@ -13,7 +13,7 @@
         <PackageReference Include="FluentAssertions" Version="8.11.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
         <PackageReference Include="Moq" Version="4.21.0" />
-        <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="22.3.0" />
+        <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="23.0.0" />
         <PackageReference Include="xunit" Version="2.9.3" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -27,6 +27,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\FolderProcessor\FolderProcessor.csproj" />
+      <ProjectReference Include="..\..\src\FolderProcessor.Extensions.Microsoft.DependencyInjection\FolderProcessor.Extensions.Microsoft.DependencyInjection.csproj" />
     </ItemGroup>
 
     <ItemGroup>

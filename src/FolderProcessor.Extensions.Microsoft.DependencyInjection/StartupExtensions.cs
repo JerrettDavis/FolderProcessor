@@ -8,8 +8,10 @@ using FolderProcessor.Monitoring;
 using FolderProcessor.Stores;
 using JetBrains.Annotations;
 using MediatR;
+using MediatR.Pipeline;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FolderProcessor.Extensions.Microsoft.DependencyInjection;
 
@@ -39,8 +41,17 @@ public static class StartupExtensions
             return new FolderProcessorHostedService(watcher, false);
         }
 
+        services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>)));
+        services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IPipelineBehavior<,>), typeof(RequestPostProcessorBehavior<,>)));
+        services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IPipelineBehavior<,>), typeof(RequestExceptionActionProcessorBehavior<,>)));
+        services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IPipelineBehavior<,>), typeof(RequestExceptionProcessorBehavior<,>)));
+
         return services
-            .AddMediatR(ass)
+            .AddMediatR(config =>
+            {
+                config.RegisterServicesFromAssemblies(ass);
+                config.AutoRegisterRequestProcessors = true;
+            })
             .AddSingleton<IFileSystem, FileSystem>()
             .AddSingleton<ISeenFileStore, SeenFileStore>()
             .AddSingleton<IWorkingFileStore, WorkingFileStore>()
